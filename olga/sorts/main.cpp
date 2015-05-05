@@ -51,27 +51,74 @@ std::vector<int> sort_merge(std::vector<int> &v)
     return merge(v, left, right);
 }
 
+void merge2(std::vector<int> &v, std::vector<int> &tmp, size_t left, size_t mid, size_t right)
+{
+    size_t j = left, k = mid, i = 0;
+
+    while (j < mid && k < right) {
+        if (v[j] < v[k]) {
+            tmp[i] = v[j];
+            ++j;
+        } else {
+            tmp[i] = v[k];
+            ++k;
+        }
+        ++i;
+    }
+
+    for (; j < mid; ++j, ++i)
+        tmp[i] = v[j];
+    for (; k < right; ++k, ++i)
+        tmp[i] = v[k];
+
+    for (j = 0; j < i; ++j)
+        v[j + left] = tmp[j];
+}
+
+void sort_merge2(std::vector<int> &v, std::vector<int> &tmp, size_t left, size_t right)
+{
+    if ((right - left) == 1)
+        return;
+
+    size_t mid = (left + right) / 2;
+    sort_merge2(v, tmp, left, mid);
+    sort_merge2(v, tmp, mid, right);
+    merge2(v, tmp, left, mid, right);
+}
+
+void sort_merge2(std::vector<int> &v)
+{
+    std::vector<int> tmp(v.size());
+    sort_merge2(v, tmp, 0, v.size());
+}
+
 int main()
 {
-    std::vector<int> v, v1;
-    v.resize(100000);
+    std::vector<int> v, v1, v2;
+    v.resize(10000);
 
     for (size_t i = 0; i < v.size(); ++i)
         v[i] = std::rand();
 
     std::cout << "Количество элементов: " << v.size() << std::endl;
 
-    v1 = v;
+    v1 = v; v2 = v;
 
     std::clock_t c = clock();
     sort_bubble(v);
     std::cout << "Пузырек - время работы: " << (clock() - c) / 1e6 << " секунд" << std::endl;
 
     c = clock();
-    v1 = sort_merge(v1);
+    sort_merge(v1);
     std::cout << "Слияние - время работы: " << (clock() - c) / 1e6 << " секунд" << std::endl;
 
     assert(v == v1);
+
+    c = clock();
+    sort_merge2(v2);
+    std::cout << "Слияние без доп памяти - время работы: " << (clock() - c) / 1e6 << " секунд" << std::endl;
+
+    assert(v == v2);
 
     return 0;
 }
