@@ -1,67 +1,40 @@
 #include <iostream>
 #include <vector>
 
-typedef std::vector<std::vector<size_t> > graph;
+typedef std::vector<std::vector<size_t> > graph_t;
 
-graph edges;
-graph edges_t;
-size_t c_num = 1;
 
-std::vector<size_t> tout;
-
-void dfs(std::vector<bool> &visited, size_t node)
+void dfs(const graph_t &edges, std::vector<size_t> &order, std::vector<bool> &visited, size_t node)
 {
     visited[node] = true;
     for (size_t i = 0; i < edges[node].size(); ++i) {
         size_t node2 = edges[node][i];
         if (!visited[node2])
-            return dfs(visited, node2);
+            return dfs(edges, order, visited, node2);
     }
 
-    tout.push_back(node);
+    order.push_back(node);
 }
 
-void dfs_print(std::vector<bool> &visited, size_t node)
+void dfs2(const graph_t &edges, std::vector<size_t> &order, std::vector<bool> &visited, size_t node)
 {
-    std::cout << "Вершина: " << node << std::endl;
-    
+    order.push_back(node);
+
     visited[node] = true;
     for (size_t i = 0; i < edges[node].size(); ++i) {
         size_t node2 = edges[node][i];
         if (!visited[node2])
-            return dfs_print(visited, node2);
+            return dfs(edges, order, visited, node2);
     }
 }
 
-void dfs_t(std::vector<bool> &visited, size_t node)
+void print(std::vector<size_t> &component)
 {
-    visited[node] = true;
-    for (size_t i = 0; i < edges_t[node].size(); ++i) {
-        size_t node2 = edges_t[node][i];
-        if (!visited[node2])
-            return dfs_t(visited, node2);
+    for (size_t i = 0; i < component.size(); ++i) {
+        std::cout << "  Вершина номер: " << component[i] << std::endl;
     }
 
-    std::cout << "Сильная компонента связности номер: " << c_num <<  std::endl;
-
-    std::vector<bool> v1(edges.size(), false);
-    dfs_print(v1, node);
-}
-
-void scc()
-{
-    std::vector<bool> v1(edges.size(), false);
-    for (size_t i = 0; i < edges.size(); ++i)
-        dfs(v1, i);
-
-    std::vector<bool> v2(edges_t.size(), false);
-    for (int i = tout.size() - 1; i >= 0; --i) {
-        size_t node = tout[i];
-        if (!v2[node]) {
-            dfs_t(v2, node);
-            ++c_num;
-        }
-    }
+    component.clear();
 }
 
 int main()
@@ -69,17 +42,37 @@ int main()
     size_t n, m;
     std::cin >> n >> m;
 
+    graph_t edges; graph_t edges_t;
+
     edges.resize(n);
     edges_t.resize(n);
     for (size_t i = 0; i < m; ++i) {
-        size_t from, to;
-        std::cin >> from >> to;
+        size_t a, b;
+        std::cin >> a >> b;
 
-        edges[from].push_back(to);
-        edges_t[to].push_back(from);
+        edges[a].push_back(b);
+        edges_t[b].push_back(a);
     }
 
-    scc();
+    std::vector<size_t> order, component;
+    std::vector<bool> visited;
+
+    /// Прямой поиск в глубину, на выходе order - порядок обхода.
+    visited.assign(n, false);
+    for (size_t i = 0; i < n; ++i)
+        if (!visited[i])
+            dfs(edges, order, visited, i);
+
+    visited.assign(n, false);
+    /// Обратный проход, вывод компонент связности
+    for (size_t i = 0; i < n; ++i) {
+        int v = order[n-1-i];
+        if (!visited[v]) {
+            dfs2(edges_t, component, visited, v);
+            std::cout << "Сильная компонента связности номер: " << (i + 1) <<  std::endl;
+            print(component);
+        }
+    }
 
     return 0;
 }
