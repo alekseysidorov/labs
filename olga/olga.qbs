@@ -2,6 +2,7 @@ import qbs
 
 Project {
     references: [
-        "lab7/lab7.qbs"
+        "lab7/lab7.qbs",
+        "sorts/sorts.qbs"
     ]
 }
