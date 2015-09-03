@@ -12,31 +12,31 @@
 typedef std::vector<std::vector<size_t> > graph_t;
 
 
-/// Обход в глубину, при этом в tout мы запоминаем
+/// Обход в глубину, при этом в out мы запоминаем
 /// порядок выхода из вершины.
-void dfs(const graph_t &edges, std::vector<size_t> &tout, std::vector<bool> &visited, size_t node)
+void dfs(const graph_t &edges, std::vector<size_t> &out, std::vector<bool> &visited, size_t node)
 {
     visited[node] = true;
+
     for (size_t i = 0; i < edges[node].size(); ++i) {
         size_t node2 = edges[node][i];
         if (!visited[node2])
-            return dfs(edges, tout, visited, node2);
+            dfs(edges, out, visited, node2);
     }
-
-    tout.push_back(node);
+    out.push_back(node);
 }
 
-/// Обход в глубину, при этом в tout мы запоминаем
+/// Обход в глубину, при этом в order мы запоминаем
 /// порядок входа в вершину.
-void dfs2(const graph_t &edges, std::vector<size_t> &order, std::vector<bool> &visited, size_t node)
+void dfs2(const graph_t &edges, std::vector<size_t> &in, std::vector<bool> &visited, size_t node)
 {
-    order.push_back(node);
-
     visited[node] = true;
+
+    in.push_back(node);
     for (size_t i = 0; i < edges[node].size(); ++i) {
         size_t node2 = edges[node][i];
         if (!visited[node2])
-            return dfs2(edges, order, visited, node2);
+            dfs2(edges, in, visited, node2);
     }
 }
 
@@ -44,10 +44,8 @@ void dfs2(const graph_t &edges, std::vector<size_t> &order, std::vector<bool> &v
 void print(std::vector<size_t> &component)
 {
     for (size_t i = 0; i < component.size(); ++i) {
-        std::cout << "  Вершина номер: " << component[i] << std::endl;
+        std::cout << "  Вершина номер: " << (component[i] + 1) << std::endl;
     }
-
-    component.clear();
 }
 
 int main()
@@ -64,27 +62,30 @@ int main()
         size_t a, b;
         std::cin >> a >> b;
 
+        a--;b--;
+
         edges[a].push_back(b);
         edges_t[b].push_back(a);
     }
 
-    std::vector<size_t> tout, component;
+    std::vector<size_t> out;
 
     /// Прямой поиск в глубину, на выходе order - порядок обхода.
     std::vector<bool> visited;
     visited.assign(n, false);
     for (size_t i = 0; i < n; ++i)
         if (!visited[i])
-            dfs(edges, tout, visited, i);
+            dfs(edges, out, visited, i);
 
     /// Обратный проход, вывод компонент связности
     visited.assign(n, false);
-    const size_t t = tout.size();
+    const size_t t = out.size();
     for (size_t i = 0; i < t; ++i) {
-        int v = tout[t - i -1];
+        int v = out[t - i -1];
         if (!visited[v]) {
             /// запускаем поиск в глубину с запоминанием порядка входа в вершины
             /// это и будет наша компонента сильной связности
+            std::vector<size_t> component;
             dfs2(edges_t, component, visited, v);
             std::cout << "Сильная компонента связности номер: " << (i + 1) <<  std::endl;
             print(component);

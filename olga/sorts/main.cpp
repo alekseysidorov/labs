@@ -2,6 +2,7 @@
 #include <vector>
 #include <ctime>
 #include <cassert>
+#include <cstdlib>
 
 void sort_bubble(std::vector<int> &v)
 {
