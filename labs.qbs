@@ -2,6 +2,7 @@ import qbs
 
 Project {
     references: [
-        "olga/olga.qbs"
+        "olga/olga.qbs",
+        "training/training.qbs"
     ]
 }
