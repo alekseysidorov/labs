@@ -2,6 +2,7 @@ import qbs
 
 Project {
     references: [
-        "qsort/qsort.qbs"
+        "qsort/qsort.qbs",
+        "codeforces/codeforces.qbs"
     ]
 }
