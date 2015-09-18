@@ -4,3 +4,4 @@ build
 *.dblite
 *.pyc
 _pycache__
+.DS_Store
