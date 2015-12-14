@@ -10,22 +10,25 @@ struct Figure
     int x;
     int y;
     QColor color;
+    double angle;
 
-    virtual void paint(QWidget *wgt) const = 0;
+    virtual void paint(QWidget *wgt) = 0;
 
     virtual void fromString(const QStringList &strs);
-    virtual QStringList toString() const;
+    virtual QStringList toString();
+    virtual QRect rect() = 0;
     virtual ~Figure();
 };
 
 struct Circle : Figure
 {
-    int r;
+    int d;
 
-    void paint(QWidget *wgt) const;
+    void paint(QWidget *wgt);
 
     void fromString(const QStringList &string);
-    QStringList toString() const;
+    QStringList toString();
+    QRect rect();
 };
 
 struct Rect : Figure
@@ -33,10 +36,11 @@ struct Rect : Figure
     int w;
     int h;
 
-    void paint(QWidget *wgt) const;
+    void paint(QWidget *wgt);
 
     void fromString(const QStringList &strs);
-    QStringList toString() const;
+    QStringList toString();
+    QRect rect();
 };
 
 struct Triangle : Figure
@@ -46,10 +50,11 @@ struct Triangle : Figure
     int x3;
     int y3;
 
-    void paint(QWidget *wgt) const;
+    void paint(QWidget *wgt);
 
     void fromString(const QStringList &strs);
-    QStringList toString() const;
+    QStringList toString();
+    QRect rect();
 };
 
 #endif // FIGURES_H

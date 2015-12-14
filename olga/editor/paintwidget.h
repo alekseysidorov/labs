@@ -16,6 +16,12 @@ public:
     void save(const QString &fileName);
 protected:
     void paintEvent(QPaintEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
+    void mousePressEvent(QMouseEvent *);
+    void mouseMoveEvent(QMouseEvent *);
+private:
+    QList<Figure*> selectedFigures;
+    QPoint oldPos;
 };
 
 #endif // PAINTWIDGET_H
