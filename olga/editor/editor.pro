@@ -14,3 +14,6 @@ HEADERS += \
     figures.h \
     mainwindow.h \
     paintwidget.h
+
+DISTFILES += \
+    diag.qmodel
