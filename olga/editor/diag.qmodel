@@ -151,7 +151,7 @@
                          </base-DElement>
                          <object>{78447c11-fe4f-496f-9b53-0cb3df25e342}</object>
                          <name>Triangle</name>
-                         <pos>x:335;y:85</pos>
+                         <pos>x:335;y:90</pos>
                          <rect>x:-55;y:-55;w:110;h:110</rect>
                          <auto-sized>false</auto-sized>
                          <visual-role>0</visual-role>
@@ -191,7 +191,7 @@
                          </base-DElement>
                          <object>{b89dfc3d-2e3d-48c9-a835-7e7687eeac69}</object>
                          <name>PaintWidget</name>
-                         <pos>x:85;y:95</pos>
+                         <pos>x:95;y:105</pos>
                          <rect>x:-75;y:-65;w:150;h:130</rect>
                          <auto-sized>false</auto-sized>
                          <visual-role>6</visual-role>
@@ -218,20 +218,15 @@
                        <a>
                         <DAssociationEnd>
                          <name>Paint</name>
-                         <navigable>true</navigable>
+                         <kind>2</kind>
                         </DAssociationEnd>
                        </a>
-                       <b>
-                        <DAssociationEnd>
-                         <kind>1</kind>
-                        </DAssociationEnd>
-                       </b>
                       </DAssociation>
                      </instance>
                     </item>
                    </qlist>
                   </elements>
-                  <last-modified>1450205396113</last-modified>
+                  <last-modified>1450205900230</last-modified>
                  </MDiagram>
                 </base-MDiagram>
                </MCanvasDiagram>
@@ -419,7 +414,7 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{f4563d9a-98c0-4fd4-b30b-56690b542859}</uid>
+                    <uid>{3dda01df-08a4-42ff-9b69-a53afa60f160}</uid>
                     <type>1</type>
                     <declaration>int d</declaration>
                    </MClassMember>
@@ -597,14 +592,14 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{95c0e5f5-3431-45d3-a477-c182f46f8a2a}</uid>
+                    <uid>{c12b48a9-98e0-435f-a2bc-d9db25f2d7d9}</uid>
                     <type>1</type>
                     <declaration>int w</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{941ef7f2-9544-4595-9d50-147660369ee6}</uid>
+                    <uid>{475fc17b-c8aa-467e-b374-a8c18723e7e9}</uid>
                     <type>1</type>
                     <declaration>int h</declaration>
                    </MClassMember>
@@ -666,28 +661,28 @@
                  <qlist>
                   <item>
                    <MClassMember>
-                    <uid>{aa2091fb-fc75-4d30-b18d-6d613d944bd4}</uid>
+                    <uid>{fc84f474-6d89-442e-b853-4255cf591107}</uid>
                     <type>1</type>
                     <declaration>int x2</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{3288c6cb-41d2-4353-bcf1-2ca03fe191da}</uid>
+                    <uid>{5a718c05-53cb-4533-ace2-4aa4b318787f}</uid>
                     <type>1</type>
                     <declaration>int y2</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{f0eab6ed-da8c-4496-ac51-bfe0edb413c4}</uid>
+                    <uid>{ccc5eec9-7714-4b02-a89e-92e3ddbe3109}</uid>
                     <type>1</type>
                     <declaration>int x3</declaration>
                    </MClassMember>
                   </item>
                   <item>
                    <MClassMember>
-                    <uid>{53193cdd-9d29-4184-99cf-3cb74f143c1f}</uid>
+                    <uid>{25397739-a7cd-4c19-a7f3-82e21314c3df}</uid>
                     <type>1</type>
                     <declaration>int y3</declaration>
                    </MClassMember>
@@ -737,14 +732,9 @@
                            <a>
                             <MAssociationEnd>
                              <name>Paint</name>
-                             <navigable>true</navigable>
+                             <kind>2</kind>
                             </MAssociationEnd>
                            </a>
-                           <b>
-                            <MAssociationEnd>
-                             <kind>1</kind>
-                            </MAssociationEnd>
-                           </b>
                           </MAssociation>
                          </instance>
                         </target>
