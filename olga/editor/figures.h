@@ -14,8 +14,8 @@ struct Figure
 
     virtual void paint(QWidget *wgt) = 0;
 
-    virtual void fromString(const QStringList &strs);
-    virtual QStringList toString();
+    virtual void load(const QStringList &strs);
+    virtual QStringList save();
     virtual QRect rect() = 0;
     virtual ~Figure();
 };
@@ -26,8 +26,9 @@ struct Circle : Figure
 
     void paint(QWidget *wgt);
 
-    void fromString(const QStringList &string);
-    QStringList toString();
+    void load(const QStringList &string);
+    ~Circle();
+    QStringList save();
     QRect rect();
 };
 
@@ -38,8 +39,8 @@ struct Rect : Figure
 
     void paint(QWidget *wgt);
 
-    void fromString(const QStringList &strs);
-    QStringList toString();
+    void load(const QStringList &strs);
+    QStringList save();
     QRect rect();
 };
 
@@ -52,8 +53,8 @@ struct Triangle : Figure
 
     void paint(QWidget *wgt);
 
-    void fromString(const QStringList &strs);
-    QStringList toString();
+    void load(const QStringList &strs);
+    QStringList save();
     QRect rect();
 };
 

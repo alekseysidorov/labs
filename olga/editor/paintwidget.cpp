@@ -49,7 +49,7 @@ void PaintWidget::load(const QString &fileName)
         else if (n == "T") f = new Triangle;
 
         if (f) {
-            f->fromString(strs);
+            f->load(strs);
             figures.append(f);
         }
     }
@@ -62,7 +62,7 @@ void PaintWidget::save(const QString &fileName)
     QTextStream out(&file);
 
     for (int i = 0; i < figures.size(); ++i) {
-        out << figures[i]->toString().join(' ') << "\n";
+        out << figures[i]->save().join(' ') << "\n";
     }
 }
 
