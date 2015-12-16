@@ -9,11 +9,11 @@ class PaintWidget : public QWidget
 public:
     explicit PaintWidget(QWidget *parent = 0);
 
+    QImage image;
 signals:
 
 public slots:
-
-    // QWidget interface
+    void paint(const QImage &pixmap);
 protected:
     void paintEvent(QPaintEvent *);
 };

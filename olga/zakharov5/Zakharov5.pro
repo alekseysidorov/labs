@@ -14,9 +14,11 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    paintwidget.cpp
+    paintwidget.cpp \
+    generator.cpp
 
 HEADERS  += mainwindow.h \
-    paintwidget.h
+    paintwidget.h \
+    generator.h
 
 FORMS    += mainwindow.ui
