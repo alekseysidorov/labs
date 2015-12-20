@@ -1,5 +1,6 @@
 *.pro.user*
 *.txt.user*
+*.qbs.user*
 moc_*.cpp
 qrc_*.cpp
 Makefile*
@@ -15,3 +16,5 @@ latex
 *_behave_tests_temp/
 *.qm
 *_translations.qrc
+build
+
