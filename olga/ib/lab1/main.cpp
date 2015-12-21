@@ -4,6 +4,8 @@
 #include <QSet>
 #include <QDebug>
 
+#include <map>
+
 QString loadFile(const QString &name)
 {
     QFile f(name);
@@ -18,9 +20,11 @@ void saveFile(const QString &name, const QString &data)
     f.write(data.toUtf8());
 }
 
-QSet<QString> loadDict(QString words)
+typedef std::map<QString, int> Dictionary;
+
+Dictionary loadDict(QString words)
 {
-    QSet<QString> dict;
+    std::map<QString, int> dict;
     QTextStream in(&words);
     while (!in.atEnd()) {
         QString s;
@@ -35,7 +39,7 @@ QSet<QString> loadDict(QString words)
                 word.append(ch);
             }
         }
-        dict.insert(word);
+        dict[word]++;
     }
     return dict;
 }
@@ -102,7 +106,7 @@ QString encryptCaesar(int shift, const QString &string)
     return out;
 }
 
-QString decryptCaesar(const QSet<QString> &dict, QString str)
+QString decryptCaesar(const Dictionary &dict, QString str)
 {
     QTextStream in(&str);
 
@@ -114,7 +118,7 @@ QString decryptCaesar(const QSet<QString> &dict, QString str)
         if (str.size() > 3) {
             for (int i = 1; i <= 33; ++i) {
                 QString d = encryptCaesar(i, str);
-                if (dict.contains(d)) {
+                if (dict.find(d) != dict.end()) {
                     found = true;
                     shift = i;
                     break;
@@ -150,10 +154,23 @@ QString encryptCiph(ushort *dict, const QString &s)
 
 QString decryptCiph(QString str)
 {
-    QString s = loadFile("txt/book.txt");
+    QString s = loadFile("txt/book.txt").toLower();
 
     Frequencies dictFreqs = getFrequencies(s);
-    QSet<QString> dict = loadDict(s);
+    Dictionary dict = loadDict(s);
+
+    struct Word { int count; QString word; };
+    QList<Word> words;
+    for (auto d : dict) {
+        Word w { d.second, d.first };
+        words.append(w);
+    }
+    std::sort(words.begin(), words.end(), [](const Word &a, const Word &b) {
+       return a.count > b.count;
+    });
+
+    for (int i = 0; i < 100; ++i)
+        qDebug() << i << ":" << words[i].word << words[i].count;
 
     ushort table[33] = {
         L'а',
@@ -199,7 +216,7 @@ int main(int, char **)
     txt = encryptCaesar(-1, txt);
     saveFile("texts.txt", txt);
 
-    QSet<QString> dict = loadDict(loadFile("txt/dict.txt"));
+    Dictionary dict = loadDict(loadFile("txt/dict.txt"));
 
     txt = loadFile("txt/F1_ciph_ces.txt");
     txt = decryptCaesar(dict, txt);
