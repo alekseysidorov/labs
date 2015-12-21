@@ -20,15 +20,16 @@ void saveFile(const QString &name, const QString &data)
     f.write(data.toUtf8());
 }
 
-typedef std::map<QString, int> Dictionary;
+typedef QMap<QString, int> WordsFrequencies;
 
-Dictionary loadDict(QString words)
+QStringList loadDict(QString str)
 {
-    std::map<QString, int> dict;
-    QTextStream in(&words);
+    QMap<QString, int> dict;
+    QTextStream in(&str);
     while (!in.atEnd()) {
         QString s;
         in >> s;
+
         s = s.replace("ё", "е");
 
         QString word;
@@ -39,9 +40,21 @@ Dictionary loadDict(QString words)
                 word.append(ch);
             }
         }
-        dict[word]++;
+        if (!word.isEmpty())
+            dict[word]++;
     }
-    return dict;
+
+    QList<QPair<int, QString>> words;
+    for (auto it = dict.begin(); it != dict.end(); ++it) {
+        words.append(qMakePair(it.value(), it.key()));
+    }
+    std::sort(words.begin(), words.end());
+
+    QStringList strs;
+    for (auto w : words)
+        strs.append(w.second);
+    std::reverse(strs.begin(), strs.end());
+    return strs;
 }
 
 struct Frequency {
@@ -106,7 +119,7 @@ QString encryptCaesar(int shift, const QString &string)
     return out;
 }
 
-QString decryptCaesar(const Dictionary &dict, QString str)
+QString decryptCaesar(const QStringList &dict, QString str)
 {
     QTextStream in(&str);
 
@@ -118,7 +131,7 @@ QString decryptCaesar(const Dictionary &dict, QString str)
         if (str.size() > 3) {
             for (int i = 1; i <= 33; ++i) {
                 QString d = encryptCaesar(i, str);
-                if (dict.find(d) != dict.end()) {
+                if (dict.contains(d)) {
                     found = true;
                     shift = i;
                     break;
@@ -136,15 +149,14 @@ QString decryptCaesar(const Dictionary &dict, QString str)
     return out;
 }
 
-QString encryptCiph(ushort *dict, const QString &s)
+QString encryptCiph(QChar *dict, const QString &s)
 {
     QString out;
     for (int i = 0; i < s.size(); ++i) {
         QChar ch = s[i];
-        ushort &u = ch.unicode();
-        if (u >= L'а' && u <= L'я') {
-            ushort j = u - L'а';
-            u = dict[j];
+        if (ch >= L'а' && ch <= L'я') {
+            ushort j = ch.unicode() - L'а';
+            ch = dict[j];
         }
         out.append(ch);
     }
@@ -152,62 +164,49 @@ QString encryptCiph(ushort *dict, const QString &s)
     return out;
 }
 
-QString decryptCiph(QString str)
+void swapSymbol(QChar *table, QChar encrypted, QChar origin)
+{
+    int e = 0;
+    for (int i = 0; i < 32; ++i) {
+        if (table[i] == origin) {
+            e = i; break;
+        }
+    }
+    std::swap(table[encrypted.unicode() - L'а'], table[e]);
+}
+
+QString decryptCiph(QString ciph)
 {
     QString s = loadFile("txt/book.txt").toLower();
-
     Frequencies dictFreqs = getFrequencies(s);
-    Dictionary dict = loadDict(s);
+    Frequencies ciphFreqs = getFrequencies(ciph);
 
-    struct Word { int count; QString word; };
-    QList<Word> words;
-    for (auto d : dict) {
-        Word w { d.second, d.first };
-        words.append(w);
+    QChar table[32] = {};
+    for (int i = 0 ; i < 32; ++i) {
+        table[ciphFreqs[i].symbol.unicode() - L'а'] = dictFreqs[i].symbol;
     }
-    std::sort(words.begin(), words.end(), [](const Word &a, const Word &b) {
-       return a.count > b.count;
-    });
 
-    for (int i = 0; i < 100; ++i)
-        qDebug() << i << ":" << words[i].word << words[i].count;
+    auto dWords = loadDict(s);
+    auto cWords = loadDict(ciph);
 
-    ushort table[33] = {
-        L'а',
-        L'б',
-        L'в',
-        L'г',
-        L'д',
-        L'е',
-        L'ж',
-        L'з',
-        L'и',
-        L'й',
-        L'к',
-        L'л',
-        L'м',
-        L'н',
-        L'о',
-        L'п',
-        L'р',
-        L'с',
-        L'т',
-        L'у',
-        L'ф',
-        L'х',
-        L'ц',
-        L'ч',
-        L'ш',
-        L'щ',
-        L'ъ',
-        L'ы',
-        L'ь',
-        L'э',
-        L'ю',
-        L'я',
-    };
+    int l = 0;
+    for (int i = 0; i < cWords.size(); ++i) {
+        QString encrypted = cWords[i];
+        for (int j = l; j < dWords.size(); ++j) {
+            QString origin = dWords[j];
 
-    return s;
+            if (encrypted.size() == origin.size()) {
+                for (int k = 0; k < origin.size(); ++k) {
+                    swapSymbol(table, encrypted[k], origin[k]);
+                }
+                l = j;
+                break;
+            }
+        }
+    }
+
+    ciph = encryptCiph(table, ciph);
+    return ciph;
 }
 
 int main(int, char **)
@@ -216,7 +215,7 @@ int main(int, char **)
     txt = encryptCaesar(-1, txt);
     saveFile("texts.txt", txt);
 
-    Dictionary dict = loadDict(loadFile("txt/dict.txt"));
+    QStringList dict = loadDict(loadFile("txt/dict.txt"));
 
     txt = loadFile("txt/F1_ciph_ces.txt");
     txt = decryptCaesar(dict, txt);
@@ -259,7 +258,7 @@ int main(int, char **)
     };
     */
 
-    ushort table[33] = {
+    QChar table[33] = {
         L'о',
         L'г',
         L'в',
