@@ -42,6 +42,19 @@ QBitArray getBits(const QByteArray &bytes)
     return bits;
 }
 
+QByteArray getBytes(const QBitArray &bits)
+{
+    QByteArray out;
+    for (int i = 0; i < bits.count() / 8; ++i) {
+        char c = 0;
+        for (int j = 0; j < 8; ++j) {
+            c |= bits[8 * i + j] << j;
+        }
+        out.append(c);
+    }
+    return out;
+}
+
 ///
 /// Переставляем биты в массиве bits в соответствии с матрицей перестановки matrix
 ///
@@ -174,9 +187,56 @@ QBitArray f(QBitArray right, QBitArray shortKey)
     return result;
 }
 
+QBitArray encryptBlock(QBitArray block, QByteArray key)
+{
+    /// левая и правая половинки
+    QBitArray l(32);
+    QBitArray r(32);
+    for (int i = 0; i < 32; ++i) {
+        l[i] = block[i];
+        r[i] = block[i + 32];
+    }
+
+    for (int i = 1; i < 16; ++i) {
+        QBitArray tmp = l;
+        QBitArray shortKey = generateShortKey(key, i);
+        l = r;
+        r = tmp ^ f(r, shortKey);
+    }
+
+    QBitArray result(64);
+    for (int i = 0; i < 32; ++i) {
+        result[i] = l[i];
+        result[i + 32] = r[i];
+    }
+    return result;
+}
+
+QByteArray encrypt(QByteArray array, QByteArray key)
+{
+    IntVector p = loadMatrix("txt/p.txt");
+    IntVector ip = loadMatrix("txt/ip.txt");
+
+    QByteArray out;
+    for (int b = 0; b < array.size() / 8; ++b) {
+        QByteArray block;
+        for (int i = 0; i < 8; ++i) {
+            block.append(array[8 * b + i]);
+        }
+
+        QBitArray bits = getBits(block);
+        bits = makePermutation(p, bits);
+        bits = encryptBlock(bits, key);
+        bits = makePermutation(ip, bits);
+        out += getBytes(bits);
+    }
+    return out;
+}
+
 int main(int, char **)
 {
-    auto key = generateShortKey("abacabaababababaabab", 16);
+    QByteArray txt = loadFile("txt/text.txt");
 
-    qDebug() << key;
+    txt = encrypt(txt, "12345678");
+    saveFile("text_encrypted.txt", txt);
 }
