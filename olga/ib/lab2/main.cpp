@@ -134,7 +134,7 @@ QBitArray generateShortKey(const QByteArray &key, int iteration)
         shortKey[i + 28] = rightKey[i];
     }
 
-    IntVector kp = loadMatrix("txt/ip.txt");
+    IntVector kp = loadMatrix("txt/kp.txt");
 
     QBitArray tmp(48);
     for (int i = 0; i < 48; ++i)
@@ -172,8 +172,8 @@ QBitArray f(QBitArray right, QBitArray shortKey)
     for (int j = 0; j < 8; ++j) {
         IntVector s = loadMatrix(QString("txt/s%1.txt").arg(j + 1));
 
-        int row = (b[j][1] << 1) | b[j][6];
-        int column = (b[j][2] << 3) | (b[j][3] << 2) | (b[j][4] << 2) | (b[j][5]);
+        int row = (b[j][0] << 1) | b[j][5];
+        int column = (b[j][1] << 3) | (b[j][2] << 2) | (b[j][3] << 2) | (b[j][4]);
         int i = 16 * row + column;
 
         int o = s[i];
@@ -212,6 +212,31 @@ QBitArray encryptBlock(QBitArray block, QByteArray key)
     return result;
 }
 
+QBitArray decryptBlock(QBitArray block, QByteArray key)
+{
+    /// левая и правая половинки
+    QBitArray l(32);
+    QBitArray r(32);
+    for (int i = 0; i < 32; ++i) {
+        l[i] = block[i];
+        r[i] = block[i + 32];
+    }
+
+    for (int i = 15; i >= 1; --i) {
+        QBitArray tmp = r;
+        QBitArray shortKey = generateShortKey(key, i);
+        r = l;
+        l = tmp ^ f(l, shortKey);
+    }
+
+    QBitArray result(64);
+    for (int i = 0; i < 32; ++i) {
+        result[i] = l[i];
+        result[i + 32] = r[i];
+    }
+    return result;
+}
+
 QByteArray encrypt(QByteArray array, QByteArray key)
 {
     IntVector p = loadMatrix("txt/p.txt");
@@ -233,10 +258,41 @@ QByteArray encrypt(QByteArray array, QByteArray key)
     return out;
 }
 
+QByteArray decrypt(QByteArray array, QByteArray key)
+{
+    IntVector p = loadMatrix("txt/p.txt");
+    IntVector ip = loadMatrix("txt/ip.txt");
+
+    QByteArray out;
+    for (int b = 0; b < array.size() / 8; ++b) {
+        QByteArray block;
+        for (int i = 0; i < 8; ++i) {
+            block.append(array[8 * b + i]);
+        }
+
+        QBitArray bits = getBits(block);
+        bits = makePermutation(p, bits);
+        bits = decryptBlock(bits, key);
+        bits = makePermutation(ip, bits);
+        out += getBytes(bits);
+    }
+    return out;
+}
+
 int main(int, char **)
 {
     QByteArray txt = loadFile("txt/text.txt");
 
     txt = encrypt(txt, "12345678");
     saveFile("text_encrypted.txt", txt);
+
+    txt = decrypt(txt, "12345678");
+    saveFile("text_decrypted.txt", txt);
+
+    txt = "abacaba acbababab udhoa;assaa";
+    qDebug() << txt;
+    txt = encrypt(txt, "87654321");
+    qDebug() << "encrypted: " << txt;
+    txt = decrypt(txt, "87654321");
+    qDebug() << "decrypted: " << txt;
 }
