@@ -1,8 +1,10 @@
 #ifndef FIGURES_H
 #define FIGURES_H
-#include <QWidget>
 #include <QColor>
 #include <QString>
+#include <QRect>
+
+class QPainter;
 
 struct Figure
 {
@@ -12,7 +14,7 @@ struct Figure
     QColor color;
     double angle;
 
-    virtual void paint(QWidget *wgt) = 0;
+    virtual void paint(QPainter *p) = 0;
 
     virtual void load(const QStringList &strs);
     virtual QStringList save();
@@ -24,7 +26,7 @@ struct Circle : Figure
 {
     int d;
 
-    void paint(QWidget *wgt);
+    void paint(QPainter *p);
 
     void load(const QStringList &string);
     ~Circle();
@@ -37,7 +39,7 @@ struct Rect : Figure
     int w;
     int h;
 
-    void paint(QWidget *wgt);
+    void paint(QPainter *p);
 
     void load(const QStringList &strs);
     QStringList save();
@@ -51,7 +53,7 @@ struct Triangle : Figure
     int x3;
     int y3;
 
-    void paint(QWidget *wgt);
+    void paint(QPainter *p);
 
     void load(const QStringList &strs);
     QStringList save();

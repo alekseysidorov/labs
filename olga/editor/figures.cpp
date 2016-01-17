@@ -26,11 +26,10 @@ QStringList Figure::save()
     return strs;
 }
 
-void Circle::paint(QWidget *wgt)
+void Circle::paint(QPainter *p)
 {
-    QPainter p(wgt);
-    p.setPen(color);
-    p.drawEllipse(x, y, d, d);
+    p->setPen(color);
+    p->drawEllipse(x, y, d, d);
 }
 
 void Circle::load(const QStringList &strs)
@@ -56,14 +55,12 @@ QRect Circle::rect()
     return QRect(x, y, d, d);
 }
 
-void Rect::paint(QWidget *wgt)
+void Rect::paint(QPainter *p)
 {
-    QPainter p(wgt);
-
-    p.setPen(color);
-    p.translate(x + w/2, y + h/2);
-    p.rotate(angle);
-    p.drawRect(-w/2, -h/2, w, h);
+    p->setPen(color);
+    p->translate(x + w/2, y + h/2);
+    p->rotate(angle);
+    p->drawRect(-w/2, -h/2, w, h);
 }
 
 void Rect::load(const QStringList &strs)
@@ -85,18 +82,16 @@ QRect Rect::rect()
     return QRect(x, y, w, h);
 }
 
-void Triangle::paint(QWidget *wgt)
+void Triangle::paint(QPainter *p)
 {
-    QPainter p(wgt);
-
     QPoint points[3] = {
         QPoint(x, y),
         QPoint(x2, y2),
         QPoint(x3, y3),
     };
 
-    p.setPen(color);
-    p.drawPolygon(points, 3);
+    p->setPen(color);
+    p->drawPolygon(points, 3);
 }
 
 void Triangle::load(const QStringList &strs)

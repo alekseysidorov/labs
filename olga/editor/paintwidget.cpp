@@ -24,55 +24,27 @@ PaintWidget::~PaintWidget()
     dir.cd("Figures");
 
     save(dir.absoluteFilePath("library.txt"));
-    qDeleteAll(figures);
 }
 
 void PaintWidget::load(const QString &fileName)
 {
-    qDebug() << "load:" << fileName;
-
-    QFile file(fileName);
-    file.open(QFile::ReadOnly|QFile::Text);
-    QTextStream in(&file);
-
-    while (!in.atEnd()) {
-        QString str = in.readLine();
-
-        QStringList strs = str.split(' ');
-        QString n = strs[0];
-
-        qDebug() << strs;
-
-        Figure *f = 0;
-        if (n == "C") f = new Circle;
-        else if (n == "R") f = new Rect;
-        else if (n == "T") f = new Triangle;
-
-        if (f) {
-            f->load(strs);
-            figures.append(f);
-        }
-    }
+    container.load(fileName);
 }
 
 void PaintWidget::save(const QString &fileName)
 {
-    QFile file(fileName);
-    file.open(QFile::WriteOnly|QFile::Text);
-    QTextStream out(&file);
-
-    for (int i = 0; i < figures.size(); ++i) {
-        out << figures[i]->save().join(' ') << "\n";
-    }
+    container.save(fileName);
 }
 
-void PaintWidget::paintEvent(QPaintEvent *e)
+void PaintWidget::paintEvent(QPaintEvent *)
 {
-    for (int i = 0; i < figures.size(); ++i) {
-        figures[i]->paint(this);
+    QPainter p(this);
+    for (int i = 0; i < container.figuresCount(); ++i) {
+        p.save();
+        container.figureAt(i)->paint(&p);
+        p.restore();
     }
 
-    QPainter p(this);
     QPen pen(Qt::DashLine);
     pen.setColor("gray");
     p.setPen(pen);
@@ -99,7 +71,7 @@ void PaintWidget::mouseReleaseEvent(QMouseEvent *e)
             r->w = 100;
             r->h = 100;
             r->angle = 0;
-            figures.append(r);
+            container.addFigure(r);
             update();
         } else if (e->button() == Qt::RightButton) {
             Circle *c = new Circle;
@@ -109,7 +81,7 @@ void PaintWidget::mouseReleaseEvent(QMouseEvent *e)
             c->x = e->x() - c->d/2;
             c->y = e->y() - c->d/2;
             c->angle = 0;
-            figures.append(c);
+            container.addFigure(c);
             update();
         }
     } else {
@@ -129,11 +101,12 @@ void PaintWidget::mousePressEvent(QMouseEvent *e)
 {
     oldPos = e->pos();
     if (e->button() == Qt::LeftButton) {
-        for (int i = 0; i < figures.size(); ++i) {
-            QRect r = figures[i]->rect();
+        for (int i = 0; i < container.figuresCount(); ++i) {
+            Figure *fig = container.figureAt(i);
+            QRect r = fig->rect();
             if (e->x() >= r.x() && e->x() <= r.right() && e->y() >= r.y() && e->y() <= r.bottom()
-                    && !selectedFigures.contains(figures[i])) {
-                selectedFigures.append(figures[i]);
+                    && !selectedFigures.contains(fig)) {
+                selectedFigures.append(fig);
             }
         }
         update();
