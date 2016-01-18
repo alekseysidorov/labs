@@ -181,6 +181,17 @@ QString decryptCiph(QString ciph)
     Frequencies dictFreqs = getFrequencies(s);
     Frequencies ciphFreqs = getFrequencies(ciph);
 
+    // частотный анализ какого-то большого текста
+    qDebug() << "dict frequencies: ";
+    for (Frequency f : dictFreqs)
+        qDebug() << QString(f.symbol) << ": " << f.frequency;
+    qDebug() << "\n";
+
+    // частотный анализ шифрованного текста
+    qDebug() << "ciph frequencies: ";
+    for (Frequency f : ciphFreqs)
+        qDebug() << QString(f.symbol) << ": " << f.frequency;
+
     /// с автоматическим выводом таблицы дешифровки проблемы, поэтому ее нужно ручками добивать
     QChar table[33] = {
         L'о',
