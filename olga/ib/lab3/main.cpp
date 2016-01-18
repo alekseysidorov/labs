@@ -12,19 +12,18 @@ QList<int> loadFile(const QString &fileName)
     file.open(QFile::ReadOnly|QFile::Text);
 
     QString str = file.readAll();
-    str = str.remove("z=[").remove("];");
-
-    QStringList strs = str.split(" ");
 
     QList<int> vec;
-    for (QString s : strs)
-        vec.push_back(s.toInt());
+    for (QChar ch : str) {
+        if (ch.isDigit())
+            vec.push_back(ch.digitValue());
+    }
     return vec;
 }
 
 int main(int, char **)
 {
-    auto z = loadFile("txt/test.txt");
+    auto z = loadFile("txt/rand13.txt");
 
     // выводим исходный массив z
     std::cout << "z = [";
@@ -33,7 +32,6 @@ int main(int, char **)
     std::cout << " ];" << std::endl;
 
     // начальные условия
-    int r = 0;
     QList<int> c = {
         1
     };
@@ -41,8 +39,8 @@ int main(int, char **)
 
     int d = 0;
     int n =  z.size();
-    do {
-        ++r;
+
+    for (int r = 1; r < n; ++r) {
         // расширяем c
         while (c.size() < r)
             c.push_back(0);
@@ -50,7 +48,7 @@ int main(int, char **)
         // вычисляем невязку
         d = 0;
         for (int j = 0; j < r; ++j) {
-            d = (d + c[j] * z[r - 1 - j]) % 2;
+            d = (d + c[j] * z[r - j]) % 2;
         }
 
         b.prepend(0);
@@ -76,7 +74,7 @@ int main(int, char **)
             b = c; // сохраняем предыдущий полином
             c = t; // меняем связи регистра
         }
-    } while (r < n);
+    }
 
     // выводим значение полинома
     std::cout << "c(x) = ";
