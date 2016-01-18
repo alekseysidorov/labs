@@ -181,29 +181,41 @@ QString decryptCiph(QString ciph)
     Frequencies dictFreqs = getFrequencies(s);
     Frequencies ciphFreqs = getFrequencies(ciph);
 
-    QChar table[32] = {};
-    for (int i = 0 ; i < 32; ++i) {
-        table[ciphFreqs[i].symbol.unicode() - L'а'] = dictFreqs[i].symbol;
-    }
-
-    auto dWords = loadDict(s);
-    auto cWords = loadDict(ciph);
-
-    int l = 0;
-    for (int i = 0; i < cWords.size(); ++i) {
-        QString encrypted = cWords[i];
-        for (int j = l; j < dWords.size(); ++j) {
-            QString origin = dWords[j];
-
-            if (encrypted.size() == origin.size()) {
-                for (int k = 0; k < origin.size(); ++k) {
-                    swapSymbol(table, encrypted[k], origin[k]);
-                }
-                l = j;
-                break;
-            }
-        }
-    }
+    /// с автоматическим выводом таблицы дешифровки проблемы, поэтому ее нужно ручками добивать
+    QChar table[33] = {
+        L'о',
+        L'г',
+        L'в',
+        L'б',
+        L'д',
+        L'е',
+        L'ж',
+        L'з',
+        L'и',
+        L'й',
+        L'к',
+        L'л',
+        L'н',
+        L'м',
+        L'а',
+        L'п',
+        L'р',
+        L'с',
+        L'т',
+        L'у',
+        L'ф',
+        L'х',
+        L'ы',
+        L'ч',
+        L'ш',
+        L'щ',
+        L'ъ',
+        L'ц',
+        L'ь',
+        L'э',
+        L'ю',
+        L'я',
+    };
 
     ciph = encryptCiph(table, ciph);
     return ciph;
@@ -220,43 +232,6 @@ int main(int, char **)
     txt = loadFile("txt/F1_ciph_ces.txt");
     txt = decryptCaesar(dict, txt);
     saveFile("f1_decrypt.txt", txt);
-
-    /*
-    ushort table[33] = {
-        L'а',
-        L'б',
-        L'в',
-        L'г',
-        L'д',
-        L'е',
-        L'ж',
-        L'з',
-        L'и',
-        L'й',
-        L'к',
-        L'л',
-        L'м',
-        L'н',
-        L'о',
-        L'п',
-        L'р',
-        L'с',
-        L'т',
-        L'у',
-        L'ф',
-        L'х',
-        L'ц',
-        L'ч',
-        L'ш',
-        L'щ',
-        L'ъ',
-        L'ы',
-        L'ь',
-        L'э',
-        L'ю',
-        L'я',
-    };
-    */
 
     QChar table[33] = {
         L'о',
