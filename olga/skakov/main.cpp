@@ -5,7 +5,7 @@
 extern "C" void __cdecl printasm(char *out_buf, const char *format, const char *hex_number); // const char *format,
 
 int main() {
-    char numb[128] = "164";
+    char numb[128] = "-100";
     char buf[128] = {};
     const char *fmt = " 10";
 
