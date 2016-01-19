@@ -5,11 +5,14 @@
 extern "C" void __cdecl printasm(char *out_buf, const char *format, const char *hex_number); // const char *format,
 
 int main() {
-    char numb[128] = "-100";
+    unsigned int x = -1;
+    x = x >> 1;
+
+    char numb[128] = "-64";
     char buf[128] = {};
-    const char *fmt = " 10";
+    const char *fmt = " 23";
 
     printasm(buf, fmt, numb);
 
-    std::cout << "out: " << buf << std::endl;
+    std::cout << "out:" << buf << std::endl;
 }
