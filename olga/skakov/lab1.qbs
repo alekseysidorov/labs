@@ -5,8 +5,6 @@ import qbs.ModUtils;
 
 Application {
     name: "App"
-    type: "application"
-    condition: yasmProbe.found
 
     property string yasmFormat: {
         if (qbs.targetOS.contains("osx"))
@@ -18,8 +16,11 @@ Application {
         return "unknown"
     }
     property string yasmPath: {
-        return yasmProbe.filePath
+        if (yasmProbe.filePath)
+            return yasmProbe.filePath
+        return "D:/apps/msys2/mingw32/bin/yasm.exe"
     }
+    property bool hasDebug: !qbs.targetOS.contains("osx")
 
     Probes.PathProbe {
         id: yasmProbe
@@ -37,7 +38,8 @@ Application {
         "laba.asm",
     ]
     cpp.positionIndependentCode: false
-    cpp.linkerFlags: "-Wl,-no_pie"
+    //cpp.linkerFlags: "-Wl,-no_pie"
+    consoleApplication: false
 
     FileTagger {
         patterns: ["*.asm"]
@@ -56,13 +58,20 @@ Application {
         prepare: {
             var args = [ "-o", output.filePath, "-f", product.yasmFormat,
                         input.filePath];
-            //args = args.concat(["-g", "dwarf2"])
+            if (product.hasDebug)
+                args = args.concat(["-g", "dwarf2"])
             var yasmPath = product.yasmPath;
             var cmd = new Command(yasmPath, args);
             cmd.description = "compiling " + FileInfo.fileName(input.filePath);
             cmd.highlight = "compile";
             return cmd;
         }
+    }
+
+    Group {
+        fileTagsFilter: "application"
+        qbs.install: true
+        qbs.installDir: "bin"
     }
 }
 
