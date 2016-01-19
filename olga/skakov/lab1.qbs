@@ -56,7 +56,7 @@ Application {
         prepare: {
             var args = [ "-o", output.filePath, "-f", product.yasmFormat,
                         input.filePath];
-            args = args.concat(["-g", "dwarf2"])
+            //args = args.concat(["-g", "dwarf2"])
             var yasmPath = product.yasmPath;
             var cmd = new Command(yasmPath, args);
             cmd.description = "compiling " + FileInfo.fileName(input.filePath);

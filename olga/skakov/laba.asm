@@ -12,9 +12,29 @@ _printasm:
     xor esi, esi
     xor ebp, ebp
 
-    mov ebp, [esp + 32 + 8]
+    mov ebp, [esp + 32 + 12]
 
     mov al, [ebp]
+
+    cmp al, '-'
+    je minus
+
+minus:
+    inc ebp
+
+read_symbol:
+    mov al, [ebp]
+    cmp al, 0
+    je number
+    inc ah
+    inc ebp
+    jmp read_symbol
+
+number:
+    dec ah
+    dec ebp
+    mov al, [ebp]
+
 
 ;mov al, [ebp]
 ;inc ebp
