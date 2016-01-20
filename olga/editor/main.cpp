@@ -4,7 +4,9 @@
 #include "container.h"
 
 int main(int argc, char **argv) {
-    QString dd = QDir::home().absoluteFilePath("Figures/test");
+    QString dd = QDir::home().absoluteFilePath("Figures/test.txt");
+    QDir dr;
+    dr.mkpath(dr.absolutePath());
     Container f;
     f.addFigure(new Circle("b", "black", 35));
     f.addFigure(new Triangle("t", "magenta", QPoint(), QPoint()));

@@ -65,6 +65,7 @@ void PaintWidget::mouseReleaseEvent(QMouseEvent *e)
         if (e->button() == Qt::LeftButton) {
             Rect *r = new Rect("my_rect", "blue", e->x(), e->y());
             r->setSize(QSize(100, 100));
+            r->setPos(e->pos());
             container.addFigure(r);
             update();
         } else if (e->button() == Qt::RightButton) {
@@ -110,7 +111,7 @@ void PaintWidget::mouseMoveEvent(QMouseEvent *e)
         if (selectedFigures.size() == 1) {
             QLineF l(0, 0, dP.x(), dP.y());
 
-            selectedFigures[0]->setRotation(selectedFigures[0]->rotation() - l.angle());
+            selectedFigures[0]->setRotation(l.angle());
             update();
         }
     } else {

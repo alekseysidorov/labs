@@ -1,7 +1,7 @@
 import qbs
 
 Project {
-    StaticLibrary {
+    DynamicLibrary {
         name: "figures"
 
         files: [
@@ -14,6 +14,13 @@ Project {
         Depends { name: "Qt.gui" }
 
         cpp.includePaths: [ "." ]
+        cpp.defines: ["FIGURES_LIBRARY"]
+
+        Group {
+            fileTagsFilter: product.type
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
     }
 
     CppApplication {
@@ -31,5 +38,11 @@ Project {
 
         Depends { name: "Qt.widgets" }
         Depends { name: "figures" }
+
+        Group {
+            fileTagsFilter: product.type
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
     }
 }
