@@ -63,24 +63,13 @@ void PaintWidget::mouseReleaseEvent(QMouseEvent *e)
 {
     if (e->modifiers() & Qt::ControlModifier) {
         if (e->button() == Qt::LeftButton) {
-            Rect *r = new Rect;
-            r->color = "blue";
-            r->name = "my_rect";
-            r->x = e->x();
-            r->y = e->y();
-            r->w = 100;
-            r->h = 100;
-            r->angle = 0;
+            Rect *r = new Rect("my_rect", "blue", e->x(), e->y());
+            r->setSize(QSize(100, 100));
             container.addFigure(r);
             update();
         } else if (e->button() == Qt::RightButton) {
-            Circle *c = new Circle;
-            c->color = "red";
-            c->name = "my_circle";
-            c->d = 25;
-            c->x = e->x() - c->d/2;
-            c->y = e->y() - c->d/2;
-            c->angle = 0;
+            Circle *c = new Circle("my_circle", "red", 25);
+            c->setPos(e->pos());
             container.addFigure(c);
             update();
         }
@@ -120,13 +109,13 @@ void PaintWidget::mouseMoveEvent(QMouseEvent *e)
     if (e->modifiers() & Qt::AltModifier) {
         if (selectedFigures.size() == 1) {
             QLineF l(0, 0, dP.x(), dP.y());
-            selectedFigures[0]->angle = -l.angle();
+
+            selectedFigures[0]->setRotation(selectedFigures[0]->rotation() - l.angle());
             update();
         }
     } else {
         for (int i = 0; i < selectedFigures.size(); ++i) {
-            selectedFigures[i]->x += dP.x();
-            selectedFigures[i]->y += dP.y();
+            selectedFigures[i]->setPos(selectedFigures[i]->pos() + dP);
         }
         update();
         oldPos = e->pos();

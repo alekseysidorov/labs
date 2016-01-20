@@ -10,26 +10,79 @@ Figure::~Figure()
     qDebug() << "~Figure";
 }
 
+Figure::Figure(const QString &name_, QColor color_) :
+    name(name_),
+    col(color_),
+    x(0),
+    y(0),
+    angle(0)
+{
+
+}
+
+void Figure::setPos(const QPoint &pos)
+{
+    x = pos.x();
+    y = pos.y();
+}
+
+QPoint Figure::pos() const
+{
+    return QPoint(x, y);
+}
+
+void Figure::setRotation(double angle_)
+{
+    angle = angle_;
+}
+
+double Figure::rotation() const
+{
+    return angle;
+}
+
+QColor Figure::color() const
+{
+    return col;
+}
+
 void Figure::load(const QStringList &strs)
 {
     name = strs[1];
     x = strs[2].toInt();
     y = strs[3].toInt();
-    color = strs[4];
+    col = strs[4];
     angle = strs[5].toDouble();
 }
 
 QStringList Figure::save()
 {
     QStringList strs;
-    strs << name << QString::number(x) << QString::number(y) << color.name() << QString::number(angle);
+    strs << name << QString::number(x) << QString::number(y) << col.name() << QString::number(angle);
     return strs;
+}
+
+Circle::Circle(const QString &name_, QColor color_, int d_) :
+    Figure(name_, color_),
+    d(d_)
+{
+
+}
+
+void Circle::setDiameter(int d_)
+{
+    d = d_;
+}
+
+int Circle::diameter() const
+{
+    return d;
 }
 
 void Circle::paint(QPainter *p)
 {
-    p->setPen(color);
-    p->drawEllipse(x, y, d, d);
+    p->setPen(color());
+    p->drawEllipse(pos().x(), pos().y(), d, d);
 }
 
 void Circle::load(const QStringList &strs)
@@ -52,14 +105,33 @@ QStringList Circle::save()
 
 QRect Circle::rect()
 {
-    return QRect(x, y, d, d);
+    return QRect(pos().x(), pos().y(), d, d);
+}
+
+Rect::Rect(const QString &name_, QColor color_, int w_, int h_) :
+    Figure(name_, color_),
+    w(w_),
+    h(h_)
+{
+
+}
+
+void Rect::setSize(QSize size)
+{
+    w = size.width();
+    h = size.height();
+}
+
+QSize Rect::size() const
+{
+    return QSize(w, h);
 }
 
 void Rect::paint(QPainter *p)
-{
-    p->setPen(color);
-    p->translate(x + w/2, y + h/2);
-    p->rotate(angle);
+{    
+    p->setPen(color());
+    p->translate(pos().x() + size().width()/2, pos().y() + size().height()/2);
+    p->rotate(rotation());
     p->drawRect(-w/2, -h/2, w, h);
 }
 
@@ -79,18 +151,27 @@ QStringList Rect::save()
 
 QRect Rect::rect()
 {
-    return QRect(x, y, w, h);
+    return QRect(pos().x(), pos().y(), w, h);
+}
+
+Triangle::Triangle(const QString &name_, QColor color_, QPoint a, QPoint b) :
+    Figure(name_, color_)
+{
+    x2 = a.x();
+    y2 = a.y();
+    x3 = b.x();
+    y3 = b.y();
 }
 
 void Triangle::paint(QPainter *p)
 {
     QPoint points[3] = {
-        QPoint(x, y),
+        pos(),
         QPoint(x2, y2),
         QPoint(x3, y3),
     };
 
-    p->setPen(color);
+    p->setPen(color());
     p->drawPolygon(points, 3);
 }
 
@@ -113,10 +194,10 @@ QStringList Triangle::save()
 
 QRect Triangle::rect()
 {
-    int min_x = std::min(std::min(x, x2), x3);
-    int max_x = std::max(std::max(x, x2), x3);
-    int min_y = std::min(std::min(y, y2), y3);
-    int max_y = std::max(std::max(y, y2), y3);
+    int min_x = std::min(std::min(pos().x(), x2), x3);
+    int max_x = std::max(std::max(pos().x(), x2), x3);
+    int min_y = std::min(std::min(pos().y(), y2), y3);
+    int max_y = std::max(std::max(pos().y(), y2), y3);
 
     return QRect(min_x, min_y, max_x - min_x, max_y - min_y);
 }

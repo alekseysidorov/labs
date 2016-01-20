@@ -62,9 +62,9 @@ void Container::load(const QString &fileName)
         qDebug() << strs;
 
         Figure *f = 0;
-        if (n == "C") f = new Circle;
-        else if (n == "R") f = new Rect;
-        else if (n == "T") f = new Triangle;
+        if (n == "C") f = new Circle("circle", "red", 0);
+        else if (n == "R") f = new Rect("rect", "blue", 0, 0);
+        else if (n == "T") f = new Triangle("tr", "yellow", QPoint(), QPoint());
 
         if (f) {
             f->load(strs);
