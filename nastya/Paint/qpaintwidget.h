@@ -6,7 +6,7 @@
 #include "figures.h"
 #include <QSet>
 #include <QPainter>
-
+#include "figlibrary.h"
 
 class QPaintEvent;
 
@@ -18,8 +18,10 @@ public:
     QPaintWidget(QWidget * parent = 0);
     void paintEvent(QPaintEvent *);
 
-    QList<Figure*> figures;
-    QList<Figure*> onFigures;
+    void addFig(Figure *);
+    void download(QString ss);
+    void save(QString dd);
+    void clear();
 
     // QWidget interface
 protected:
@@ -31,6 +33,8 @@ protected:
     void mouseMoveEvent(QMouseEvent *mou);
 private:
     QPoint p;
+    FigLibrary liba;
+    QList<Figure*> onFigures;
 public:
     int pr = 117;
     void upupdate();

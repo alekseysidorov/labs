@@ -5,10 +5,10 @@ Project {
 
     DynamicLibrary {
         files: [
+            "figlibrary.cpp",
+            "figlibrary.h",
             "figures.cpp",
             "figures.h",
-            "qpaintwidget.cpp",
-            "qpaintwidget.h",
         ]
         name: "Figures"
 
@@ -19,6 +19,12 @@ Project {
         cpp.includePaths: [
             "."
         ]
+
+        Group {
+            fileTagsFilter: product.type
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
     }
 
     Application {
@@ -29,6 +35,8 @@ Project {
             "mainwindow.ui",
             "thread.cpp",
             "thread.h",
+            "qpaintwidget.cpp",
+            "qpaintwidget.h",
         ]
         name: "Paint"
 
@@ -40,5 +48,11 @@ Project {
         cpp.includePaths: [
             "."
         ]
+
+        Group {
+            fileTagsFilter: product.type
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
     }
 }

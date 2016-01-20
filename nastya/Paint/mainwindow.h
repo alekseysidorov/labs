@@ -20,12 +20,12 @@ public:
     void gener();
     void download();
 
+    QPaintWidget *wgtt();
 protected:
     void changeEvent(QEvent *e);
 
 private:
     Ui::MainWindow *ui;
-public:
     // Указатель на объект нашего класса
     QPaintWidget *wgt;
 };
