@@ -3,7 +3,7 @@ import qbs
 Project {
     name: "Paint"
 
-    DynamicLibrary {
+    Product {
         files: [
             "figlibrary.cpp",
             "figlibrary.h",
@@ -11,6 +11,7 @@ Project {
             "figures.h",
         ]
         name: "Figures"
+        type: "staticlibrary"
 
         Depends { name: "cpp" }
         Depends { name: "Qt"; submodules: ["widgets", "gui"] }
@@ -27,7 +28,7 @@ Project {
         }
     }
 
-    Application {
+    Product {
         files: [
             "main.cpp",
             "mainwindow.cpp",
@@ -39,6 +40,7 @@ Project {
             "qpaintwidget.h",
         ]
         name: "Paint"
+        type: "application"
 
         Depends { name: "cpp" }
         Depends { name: "Figures" }

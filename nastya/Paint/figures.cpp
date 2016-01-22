@@ -4,6 +4,8 @@
 #include <qpaintwidget.h>
 #include <QPainter>
 
+#include <cmath>
+#include <cstdlib>
 
 Circle::Circle(int x1, int y1, int r1, QString color1, QString name1) :
     Figure(name1, color1, "circle")
