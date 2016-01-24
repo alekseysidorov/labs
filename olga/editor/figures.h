@@ -1,37 +1,12 @@
 #ifndef FIGURES_H
 #define FIGURES_H
-#include <QColor>
 #include <QString>
 #include <QRect>
+#include <QVector>
+
+typedef QVector<QPoint> Polygon;
 
 class QPainter;
-
-//class Point
-//{
-//    int x_;
-//    int y_;
-//public:
-//    Point(int x = 0, int y = 0);
-
-//    void setX(int x)
-//    {
-//        x_ = x;
-//    }
-//    int x() const
-//    {
-//        return x_;
-//    }
-//    void setY(int y)
-//    {
-//        y_ = y;
-//    }
-//    int y() const
-//    {
-//        return y_;
-//    }
-//};
-//typedef QList<Point> Points;
-
 class Figure
 {
     QString name;
@@ -47,7 +22,7 @@ public:
     double rotation() const;
     QString color() const;
 
-    virtual void paint(QPainter *p) = 0;
+    virtual Polygon points() = 0;
 
     virtual void load(const QStringList &strs);
     virtual QStringList save();
@@ -64,7 +39,7 @@ public:
     void setDiameter(int d_);
     int diameter() const;
 
-    void paint(QPainter *p);
+    Polygon points();
 
     void load(const QStringList &string);
     ~Circle();
@@ -83,7 +58,7 @@ public:
     void setSize(QSize size);
     QSize size() const;
 
-    void paint(QPainter *p);
+    Polygon points();
 
     void load(const QStringList &strs);
     QStringList save();
@@ -99,7 +74,7 @@ public:
     Triangle(const QString &name_, QString color_, QPoint a, QPoint b, QPoint c);
     ~Triangle();
 
-    void paint(QPainter *p);
+    Polygon points();
 
     void load(const QStringList &strs);
     QStringList save();

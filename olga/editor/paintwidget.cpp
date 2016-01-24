@@ -1,5 +1,6 @@
 #include "paintwidget.h"
 #include "figures.h"
+#include <cmath>
 
 #include <QFile>
 #include <QDir>
@@ -7,6 +8,23 @@
 #include <QDebug>
 #include <QMouseEvent>
 #include <QPainter>
+
+void rotatePolygon(QPolygon &points, QPoint center, double angle)
+{
+    double d = 3.141592653589793238462643383279502884 / 180 * angle;
+
+    for (int i = 0; i < points.size(); ++i) {
+        QPoint p = points[i];
+        p -= center;
+
+        int x = p.x();
+        int y = p.y();
+        p.setX(x * std::cos(d) - y * std::sin(d));
+        p.setY(y * std::cos(d) + x * std::sin(d));
+        p += center;
+        points[i] = p;
+    }
+}
 
 PaintWidget::PaintWidget(QWidget *parent) :
     QWidget(parent)
@@ -39,11 +57,17 @@ void PaintWidget::save(const QString &fileName)
 void PaintWidget::paintEvent(QPaintEvent *)
 {
     QPainter p(this);
+    p.save();
+
     for (int i = 0; i < container.figuresCount(); ++i) {
-        p.save();
-        container.figureAt(i)->paint(&p);
-        p.restore();
+        Figure *f = container.figureAt(i);
+
+        p.setPen(f->color());
+        QPolygon po = f->points();
+        rotatePolygon(po, f->rect().center(), f->rotation());
+        p.drawPolygon(po);
     }
+    p.restore();
 
     QPen pen(Qt::DashLine);
     pen.setColor("gray");
@@ -69,7 +93,7 @@ void PaintWidget::mouseReleaseEvent(QMouseEvent *e)
             container.addFigure(r);
             update();
         } else if (e->button() == Qt::RightButton) {
-            Circle *c = new Circle("my_circle", "red", 25);
+            Circle *c = new Circle("my_circle", "red", 100);
             c->setPos(e->pos());
             container.addFigure(c);
             update();
@@ -112,7 +136,7 @@ void PaintWidget::mousePressEvent(QMouseEvent *e)
 void PaintWidget::mouseMoveEvent(QMouseEvent *e)
 {
     QPoint dP = e->pos() - oldPos;
-    if (e->modifiers() & Qt::AltModifier) {
+    if (e->modifiers() & Qt::ShiftModifier) {
         if (selectedFigures.size() == 1) {
             QLineF l(0, 0, dP.x(), dP.y());
 

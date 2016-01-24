@@ -1,6 +1,7 @@
 #ifndef CONTAINER_H
 #define CONTAINER_H
 #include "figures.h"
+#include <QList>
 
 class Container
 {

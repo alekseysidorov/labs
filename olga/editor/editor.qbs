@@ -12,7 +12,6 @@ Project {
         ]
 
         Depends { name: "Qt.core" }
-        Depends { name: "Qt.gui" }
 
         cpp.includePaths: [ "." ]
 

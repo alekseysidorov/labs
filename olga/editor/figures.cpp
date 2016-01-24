@@ -1,6 +1,5 @@
 #include "figures.h"
 
-#include <QPainter>
 #include <QDebug>
 
 #include <cmath>
@@ -79,10 +78,18 @@ int Circle::diameter() const
     return d;
 }
 
-void Circle::paint(QPainter *p)
+Polygon Circle::points()
 {
-    p->setPen(color());
-    p->drawEllipse(pos().x(), pos().y(), d, d);
+    QPoint center = pos() + QPoint(d / 2, d / 2);
+
+    Polygon p;
+    double s = 1.0 / d;
+    for (double a = 0; a < 2 * 3.141592653589793238462643383279502884; a += s) {
+        double x1 = d * std::cos(a) / 2 + center.x();
+        double y1 = d * std::sin(a) / 2 + center.y();
+        p.append(QPoint(x1, y1));
+    }
+    return p;
 }
 
 void Circle::load(const QStringList &strs)
@@ -132,12 +139,14 @@ QSize Rect::size() const
     return QSize(w, h);
 }
 
-void Rect::paint(QPainter *p)
-{    
-    p->setPen(color());
-    p->translate(pos().x() + size().width()/2, pos().y() + size().height()/2);
-    p->rotate(rotation());
-    p->drawRect(-w/2, -h/2, w, h);
+Polygon Rect::points()
+{
+    Polygon p;
+    p.push_back(pos());
+    p.push_back(pos() + QPoint(w, 0));
+    p.push_back(pos() + QPoint(w, h));
+    p.push_back(pos() + QPoint(0, h));
+    return p;
 }
 
 void Rect::load(const QStringList &strs)
@@ -172,16 +181,13 @@ Triangle::~Triangle()
     qDebug() << "~Triangle";
 }
 
-void Triangle::paint(QPainter *p)
+Polygon Triangle::points()
 {
-    QPoint points[3] = {
-        a_ + pos(),
-        b_ + pos(),
-        c_ + pos(),
-    };
-
-    p->setPen(color());
-    p->drawPolygon(points, 3);
+    Polygon p;
+    p.push_back(a_ + pos());
+    p.push_back(b_ + pos());
+    p.push_back(c_ + pos());
+    return p;
 }
 
 void Triangle::load(const QStringList &strs)
