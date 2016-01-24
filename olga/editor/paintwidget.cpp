@@ -73,6 +73,11 @@ void PaintWidget::mouseReleaseEvent(QMouseEvent *e)
             c->setPos(e->pos());
             container.addFigure(c);
             update();
+        } else if (e->button() == Qt::MiddleButton) {
+            Triangle *t = new Triangle("my_triangle", "green", QPoint(-30, -30), QPoint(30, -30), QPoint(0, 30));
+            t->setPos(e->pos());
+            container.addFigure(t);
+            update();
         }
     } else {
         if (e->button() == Qt::RightButton) {

@@ -3,7 +3,7 @@
 #include <QWidget>
 #include "container.h"
 
-struct Figure;
+class Figure;
 
 class PaintWidget : public QWidget
 {

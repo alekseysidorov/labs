@@ -50,9 +50,3 @@ void MainWindow::keyPressEvent(QKeyEvent *e)
         generator->setPaused(true);
     }
 }
-
-void MainWindow::closeEvent(QCloseEvent *)
-{
-    generator->finish();
-}
-

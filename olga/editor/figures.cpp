@@ -10,7 +10,7 @@ Figure::~Figure()
     qDebug() << "~Figure";
 }
 
-Figure::Figure(const QString &name_, QColor color_) :
+Figure::Figure(const QString &name_, QString color_) :
     name(name_),
     col(color_),
     x(0),
@@ -41,7 +41,7 @@ double Figure::rotation() const
     return angle;
 }
 
-QColor Figure::color() const
+QString Figure::color() const
 {
     return col;
 }
@@ -58,11 +58,11 @@ void Figure::load(const QStringList &strs)
 QStringList Figure::save()
 {
     QStringList strs;
-    strs << name << QString::number(x) << QString::number(y) << col.name() << QString::number(angle);
+    strs << name << QString::number(x) << QString::number(y) << col << QString::number(angle);
     return strs;
 }
 
-Circle::Circle(const QString &name_, QColor color_, int d_) :
+Circle::Circle(const QString &name_, QString color_, int d_) :
     Figure(name_, color_),
     d(d_)
 {
@@ -108,12 +108,17 @@ QRect Circle::rect()
     return QRect(pos().x(), pos().y(), d, d);
 }
 
-Rect::Rect(const QString &name_, QColor color_, int w_, int h_) :
+Rect::Rect(const QString &name_, QString color_, int w_, int h_) :
     Figure(name_, color_),
     w(w_),
     h(h_)
 {
 
+}
+
+Rect::~Rect()
+{
+    qDebug() << "~Rect";
 }
 
 void Rect::setSize(QSize size)
@@ -154,21 +159,25 @@ QRect Rect::rect()
     return QRect(pos().x(), pos().y(), w, h);
 }
 
-Triangle::Triangle(const QString &name_, QColor color_, QPoint a, QPoint b) :
+Triangle::Triangle(const QString &name_, QString color_, QPoint a, QPoint b, QPoint c) :
     Figure(name_, color_)
 {
-    x2 = a.x();
-    y2 = a.y();
-    x3 = b.x();
-    y3 = b.y();
+    a_ = a;
+    b_ = b;
+    c_ = c;
+}
+
+Triangle::~Triangle()
+{
+    qDebug() << "~Triangle";
 }
 
 void Triangle::paint(QPainter *p)
 {
     QPoint points[3] = {
-        pos(),
-        QPoint(x2, y2),
-        QPoint(x3, y3),
+        a_ + pos(),
+        b_ + pos(),
+        c_ + pos(),
     };
 
     p->setPen(color());
@@ -178,26 +187,31 @@ void Triangle::paint(QPainter *p)
 void Triangle::load(const QStringList &strs)
 {
     Figure::load(strs);
-    x2 = strs[6].toInt();
-    y2 = strs[7].toInt();
-    x3 = strs[8].toInt();
-    y3 = strs[9].toInt();
+    a_.setX(strs[6].toInt());
+    a_.setY(strs[7].toInt());
+    b_.setX(strs[8].toInt());
+    b_.setY(strs[9].toInt());
+    c_.setX(strs[10].toInt());
+    c_.setY(strs[11].toInt());
 }
 
 QStringList Triangle::save()
 {
     QStringList strs;
-    strs << "T" << Figure::save() << QString::number(x2) << QString::number(y2)
-         << QString::number(x3) << QString::number(y3);
+    strs << "T" << Figure::save()
+         << QString::number(a_.x()) << QString::number(a_.y())
+         << QString::number(b_.x()) << QString::number(b_.y())
+         << QString::number(c_.x()) << QString::number(c_.y());
     return strs;
 }
 
 QRect Triangle::rect()
 {
-    int min_x = std::min(std::min(pos().x(), x2), x3);
-    int max_x = std::max(std::max(pos().x(), x2), x3);
-    int min_y = std::min(std::min(pos().y(), y2), y3);
-    int max_y = std::max(std::max(pos().y(), y2), y3);
-
-    return QRect(min_x, min_y, max_x - min_x, max_y - min_y);
+    int min_x = std::min(std::min(a_.x(), b_.x()), c_.x());
+    int max_x = std::max(std::max(a_.x(), b_.x()), c_.x());
+    int min_y = std::min(std::min(a_.y(), b_.y()), c_.y());
+    int max_y = std::max(std::max(a_.y(), b_.y()), c_.y());
+    QRect rect(min_x, min_y, max_x - min_x, max_y - min_y);
+    rect.translate(pos());
+    return rect;
 }

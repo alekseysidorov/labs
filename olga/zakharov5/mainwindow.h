@@ -25,10 +25,8 @@ private:
     Ui::MainWindow *ui;
     PaintWidget *wgt;
     Generator *generator;
-
 protected:
     void keyPressEvent(QKeyEvent *);
-    void closeEvent(QCloseEvent *);
 };
 
 #endif // MAINWINDOW_H

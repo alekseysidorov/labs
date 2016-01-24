@@ -11,10 +11,10 @@ Project {
             "figures.h",
         ]
 
+        Depends { name: "Qt.core" }
         Depends { name: "Qt.gui" }
 
         cpp.includePaths: [ "." ]
-        cpp.defines: ["FIGURES_LIBRARY"]
 
         Group {
             fileTagsFilter: product.type
@@ -36,6 +36,8 @@ Project {
             "paintwidget.h",
         ]
 
+        Depends { name: "Qt.core" }
+        Depends { name: "Qt.gui" }
         Depends { name: "Qt.widgets" }
         Depends { name: "figures" }
 
