@@ -8,11 +8,16 @@
 class Generator : public QThread
 {
     Q_OBJECT
+
+    bool paused = true;
+    bool finished = false;
+    QSize size;
 public:
     Generator();
+    ~Generator();
 
-    bool paused;
-    QSize size;
+    void setPaused(bool set);
+    void finish();
 protected:
     void run();
     void draw();

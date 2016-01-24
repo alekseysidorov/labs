@@ -9,9 +9,26 @@ Generator::Generator() : paused(true), size(1000, 1000)
 
 }
 
+Generator::~Generator()
+{
+    finish();
+    quit();
+    wait();
+}
+
+void Generator::setPaused(bool set)
+{
+    paused = set;
+}
+
+void Generator::finish()
+{
+    finished = true;
+}
+
 void Generator::run()
 {
-    while (1) {
+    while (!finished) {
         if (!paused) {
             draw();
         }

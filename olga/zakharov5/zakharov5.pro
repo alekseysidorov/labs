@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Zakharov5
 TEMPLATE = app
+CONFIG += C++11
 
 
 SOURCES += main.cpp\

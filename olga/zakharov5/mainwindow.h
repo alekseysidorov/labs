@@ -28,6 +28,7 @@ private:
 
 protected:
     void keyPressEvent(QKeyEvent *);
+    void closeEvent(QCloseEvent *);
 };
 
 #endif // MAINWINDOW_H

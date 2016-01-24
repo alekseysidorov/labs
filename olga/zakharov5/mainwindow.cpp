@@ -25,18 +25,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete generator;
     delete ui;
 }
 
 void MainWindow::start()
 {
-    generator->paused = false;
+    generator->setPaused(false);
 }
 
 void MainWindow::save()
 {
-    generator->paused = true;
-
+    generator->setPaused(true);
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
                                                     "~",
                                                     tr("Images (*.png *.xpm *.jpg)"));
@@ -47,7 +47,12 @@ void MainWindow::save()
 void MainWindow::keyPressEvent(QKeyEvent *e)
 {
     if (e->key() == Qt::Key_Space) {
-        generator->paused = true;
+        generator->setPaused(true);
     }
+}
+
+void MainWindow::closeEvent(QCloseEvent *)
+{
+    generator->finish();
 }
 
