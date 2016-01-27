@@ -8,7 +8,7 @@ int main() {
     unsigned int x = -1;
     x = x >> 1;
 
-    char numb[128] = "-64";
+    char numb[128] = "64";
     char buf[128] = {};
     const char *fmt = " 23";
 

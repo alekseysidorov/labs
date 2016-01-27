@@ -1,4 +1,4 @@
-[global printasm]
+[global printasm] ; void  printasm(char *out_buf, const char *format, const char *hex_number);
 
 [section .text]
 
@@ -13,21 +13,21 @@ printasm:
     xor esi, esi
     xor ebp, ebp
 
-    mov ebp, [esp + 32 + 12]
+    mov ebp, [esp + 32 + 12]; достаем указатель на const char *hex_number с учетом того, что esp сместился из за pushей
     mov al, [ebp]
     cmp al, '-'
     je eat_minus
     jmp read_number
 
-eat_minus:
+eat_minus: ; просто проглатываем минус, если встретили
     inc ebp
 
 read_number:
-    mov al, [ebp]
+    mov al, [ebp] ; считываем код символа
     cmp al, 0
     je make_number
 
-    or al, 20h
+    or al, 20h ; просто превращает большие буквы в маленькие, с цифрами ничего не делает.
     cmp al, 'a'
     jge is_symbol
     sub al, '0'
@@ -37,18 +37,18 @@ is_symbol:
     sub al, 'a'
     add al, 10
 
-add_number:
-    shld edi, edx, 4
+add_number: ; считываем число в регистры edi, edx, esi, ebx
+    shld edi, edx, 4 ; двигаем все регистры влево старшего бита в следующий регистр (умножаем 128битное число на 16)
     shld edx, esi, 4
     shld esi, ebx, 4
     shl ebx, 4
-    add bl, al
+    add bl, al ; добавляем считанную цифру.
 
     inc ebp
     jmp read_number
 
 
-make_number:
+make_number: ; считываем опять минус и если надо инвертируем число
     mov ebp, [esp + 32 + 12]
     mov al, [ebp]
     cmp al, '-'
@@ -67,12 +67,13 @@ make_number:
 to_string:
     mov ebp, edx
     xor ecx, ecx
-    mov ebx, edi
-    and ebx, 0x80000000
-    or ecx, ebx
+
+    mov edx, edi ; запоминаем знак числа
+    and edx, 0x80000000
+    or ecx, edx
     xor edx, edx
 
-next_digit:
+next_digit: ; последовательно делим части числа на 10 пока оно не обнулится, остаток кладем в стек
     push 10
 
     mov eax, edi
@@ -105,9 +106,9 @@ next_digit:
     cmp ch, 0
     jne next_digit
 
-read_flags:
+read_flags: ;всякая работа с флагами
     mov eax, ecx
-    mov ebp, [esp + 32 + 8 + eax * 4]
+    mov ebp, [esp + 32 + 8 + eax * 4] ; достаем const char *format с учетом того, что esp сместился из за pushей
     mov esi, ebp
 
     mov al, [ebp]
@@ -173,7 +174,7 @@ align_zero_next:
 
 print_result:
     mov eax, ecx
-    mov ebp, [esp + 32 + 4 + eax * 4]
+    mov ebp, [esp + 32 + 4 + eax * 4] ; достаем char *out_buf
 
 print_symbol:
     pop eax
