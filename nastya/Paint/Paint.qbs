@@ -67,7 +67,7 @@ Project {
 
         Depends { name: "cpp" }
         Depends { name: "Figures" }
-        Depends { name: "Qt"; submodules: ["core"] }
+        Depends { name: "Qt"; submodules: ["core", "gui"] }
 
         cpp.cxxLanguageVersion: "c++11"
         cpp.includePaths: [
