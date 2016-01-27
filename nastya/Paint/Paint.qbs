@@ -38,6 +38,7 @@ Project {
             "thread.h",
             "qpaintwidget.cpp",
             "qpaintwidget.h",
+            "uml.qmodel",
         ]
         name: "Paint"
         type: "application"
