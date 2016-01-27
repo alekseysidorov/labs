@@ -1,11 +1,10 @@
 #ifndef QPAINTWIDGET_H
 #define QPAINTWIDGET_H
 
-#include <QWidget>
 #include <QString>
 #include "figures.h"
 #include <QSet>
-#include <QPainter>
+#include <QWidget>
 #include "figlibrary.h"
 
 class QPaintEvent;

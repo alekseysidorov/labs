@@ -14,7 +14,7 @@ Project {
         type: "staticlibrary"
 
         Depends { name: "cpp" }
-        Depends { name: "Qt"; submodules: ["widgets", "gui"] }
+        Depends { name: "Qt"; submodules: ["gui"] }
 
         cpp.cxxLanguageVersion: "c++11"
         cpp.includePaths: [
@@ -44,7 +44,30 @@ Project {
 
         Depends { name: "cpp" }
         Depends { name: "Figures" }
-        Depends { name: "Qt"; submodules: ["widgets", "gui"] }
+        Depends { name: "Qt"; submodules: ["widgets"] }
+
+        cpp.cxxLanguageVersion: "c++11"
+        cpp.includePaths: [
+            "."
+        ]
+
+        Group {
+            fileTagsFilter: product.type
+            qbs.install: true
+            qbs.installDir: "bin"
+        }
+    }
+
+    Product {
+        files: [
+            "figurist.cpp",
+        ]
+        name: "Figurist"
+        type: "application"
+
+        Depends { name: "cpp" }
+        Depends { name: "Figures" }
+        Depends { name: "Qt"; submodules: ["core"] }
 
         cpp.cxxLanguageVersion: "c++11"
         cpp.includePaths: [

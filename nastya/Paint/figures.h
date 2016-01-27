@@ -1,9 +1,10 @@
 #ifndef FIGURES_H
 #define FIGURES_H
 #include <QString>
-#include <QWidget>
 #include <QDir>
 #include <QRect>
+
+class QPainter;
 
 class Figure
 {

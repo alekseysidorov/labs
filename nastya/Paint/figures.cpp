@@ -1,7 +1,6 @@
 #include "figures.h"
 #include <QDir>
 #include <QSettings>
-#include <qpaintwidget.h>
 #include <QPainter>
 
 #include <cmath>
