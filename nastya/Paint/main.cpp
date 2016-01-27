@@ -17,9 +17,8 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     MainWindow w;
-    Thread tre(w.wgtt());
+    Thread tre(w.wgtt(), &w);
     tre.start();
-    w.download();
     w.show();
     return a.exec();
 }

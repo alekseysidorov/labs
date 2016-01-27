@@ -33,7 +33,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *mou);
 private:
     QPoint p;
-    FigLibrary liba;
+    FigLibrary figa;
     QList<Figure*> onFigures;
 public:
     int pr = 117;

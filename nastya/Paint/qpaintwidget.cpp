@@ -16,8 +16,8 @@ void QPaintWidget::paintEvent(QPaintEvent *)
 {
     QPainter op(this);
 
-    for (int i = 0; i < liba.figss().size(); ++i)
-        liba.figss()[i]->paintEv(op);
+    for (int i = 0; i < figa.figss().size(); ++i)
+        figa.figss()[i]->paintEv(op);
 
     op.setPen(QPen(Qt::gray,1,Qt::DotLine));
     for (int i = 0; i < onFigures.size(); ++i)
@@ -28,38 +28,38 @@ void QPaintWidget::paintEvent(QPaintEvent *)
 
 void QPaintWidget::addFig(Figure *fig)
 {
-    liba.add(fig);
+    figa.add(fig);
     update();
 }
 
 void QPaintWidget::download(QString ss)
 {
-    liba.load(ss);
+    figa.load(ss);
     update();
 }
 
 void QPaintWidget::save(QString dd)
 {
-    liba.save(dd);
+    figa.save(dd);
 }
 
 void QPaintWidget::clear()
 {
     onFigures.clear();
-    liba.clear();
+    figa.clear();
     update();
 }
 
 void QPaintWidget::mousePressEvent(QMouseEvent *mo)
 {
     int k = 0;
-    for (int i = 0; i < liba.figss().size(); ++i)
-        if (liba.figss()[i]->pop(mo->pos().x(), mo->pos().y()) &&
+    for (int i = 0; i < figa.figss().size(); ++i)
+        if (figa.figss()[i]->pop(mo->pos().x(), mo->pos().y()) &&
                 (mo->button() == Qt::LeftButton))
         {
             k = 117;
-            if (!onFigures.contains(liba.figss()[i]))
-            onFigures.append(liba.figss()[i]);
+            if (!onFigures.contains(figa.figss()[i]))
+            onFigures.append(figa.figss()[i]);
             update();
         }
 

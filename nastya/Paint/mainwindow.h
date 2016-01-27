@@ -19,15 +19,22 @@ public:
     void save();
     void gener();
     void download();
+    int Tra();
+    void Trol();
 
     QPaintWidget *wgtt();
 protected:
     void changeEvent(QEvent *e);
 
 private:
+    int traa = 117;
+    int trabl = 117;
     Ui::MainWindow *ui;
-    // Указатель на объект нашего класса
     QPaintWidget *wgt;
+
+    // QWidget interface
+protected:
+    void closeEvent(QCloseEvent *);
 };
 
 #endif // MAINWINDOW_H

@@ -7,6 +7,8 @@
 #include <QString>
 #include <QDir>
 #include <QSettings>
+#include <thread.h>
+#include <QFileDialog>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -27,7 +29,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    // Подчищаем
     wgt->deleteLater();
     delete ui;
 }
@@ -39,8 +40,8 @@ void MainWindow::clear()
 
 void MainWindow::save()
 {
-    QDir fi = QDir::home();
-    wgt->save(fi.absoluteFilePath("Pictures/"));
+    QString d = QFileDialog::getExistingDirectory(this, "some pretty message", QDir::homePath(), QFileDialog::ShowDirsOnly);
+    wgt->save(d);
 }
 
 void MainWindow::gener()
@@ -50,8 +51,13 @@ void MainWindow::gener()
 
 void MainWindow::download()
 {
-    QDir fi = QDir::home();
-    wgt->download(fi.absoluteFilePath("Pictures/"));
+    QString d = QFileDialog::getExistingDirectory(this, "some pretty message" ,QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::ReadOnly);
+    wgt->download(d);
+}
+
+int MainWindow::Tra()
+{
+    return traa;
 }
 
 QPaintWidget *MainWindow::wgtt()
@@ -69,4 +75,9 @@ void MainWindow::changeEvent(QEvent *e)
     default:
         break;
     }
+}
+
+void MainWindow::closeEvent(QCloseEvent *)
+{
+    traa = 0;
 }

@@ -4,15 +4,22 @@
 #include "mainwindow.h"
 #include <QTime>
 
-Thread::Thread(QPaintWidget *wgtt)
+Thread::Thread(QPaintWidget *wgtt, MainWindow* w1)
 {
+    w = w1;
     wgt = wgtt;
     connect(this, &Thread::updatePaint, wgt, &QPaintWidget::upupdate);
 }
 
+Thread::~Thread()
+{
+    this->quit();
+    this->wait();
+}
+
 void Thread::run()
 {
-    while (1)
+    while (w->Tra() == 117)
     if (wgt->pr == 0)
     {
     QTime t = QTime::currentTime();
