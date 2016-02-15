@@ -7,7 +7,7 @@ const double eps = 0.1; // заданная точность
 const double h = 0.000001; // приращение аргумента
 
 // тип исследуемой функции (возвращает double, принимает два аргумента типа double)
-typedef double (*my_function)(double x, double y); // немного наркоманский синтаксис
+typedef std::function<double (double x, double y)> my_function;
 
 // програмно считаем производную по x
 double d_x(my_function f, double x, double y)
