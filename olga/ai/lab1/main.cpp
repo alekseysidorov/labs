@@ -3,6 +3,7 @@
 #include <functional>
 #include <cmath>
 #include <limits>
+#include <random>
 
 // некоторые константы
 const double eps = 0.001; // заданная точность
@@ -89,14 +90,6 @@ point gradient(std::string file, my_function f, point p, point to, int iters, do
 
 /// метод имитации отжига
 
-/// функция распределения g
-double g_dist(double x1, double x2, double T)
-{
-    double D = 2; // размерность пространства
-    double r = std::pow(2 * M_PI * T, -D / 2) * std::exp(-std::pow(x2 - x1, 2) / (2 * T));
-    return r;
-}
-
 /// вероятность перехода
 double h_prob(double dE, double T)
 {
@@ -116,41 +109,26 @@ double get_energy(my_function f, point a, point b)
     return std::abs(f(b.x, b.y) - f(a.x, a.y));
 }
 
-/// распределение Бокса-Мюллера (взято с просторов интернета)
-double generateGaussianNoise(double mu, double sigma)
-{
-    const double epsilon = std::numeric_limits<double>::min();
-    const double two_pi = 2.0 * M_PI;
-    double u1, u2;
-    static double z0, z1;
-    static bool generate;
-    generate = !generate;
-    if (!generate)
-    {
-        return z1 * sigma + mu;
-    }
-    do
-    {
-        u1 = std::rand() / double(RAND_MAX);
-        u2 = std::rand() / double(RAND_MAX);
-    } while (u1 <= epsilon);
-    z0 = std::sqrt(-2.0 * std::log(u1)) * std::cos(two_pi * u2);
-    z1 = std::sqrt(-2.0 * std::log(u1)) * std::sin(two_pi * u2);
-    return z0 * sigma + mu;
-}
-
 // метод имитации отжига
 point annealing(std::string file, my_function f, point p, point to, int iters, double T_0)
 {
+    // генератор случайных чисел
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
     std::ofstream out(file);
     out << "i;x;y;l" << std::endl;
 
     double e = get_energy(f, to, p);
     double T = T_0;
     for (int i = 0; i < iters; ++i) {
+        // нормальное распределение, с помощью него высчитываем новое значение точки
+        std::normal_distribution<double> distx(p.x, std::sqrt(T));
+        std::normal_distribution<double> disty(p.y, std::sqrt(T));
+
         point n_p(0, 0);
-        n_p.x = generateGaussianNoise(p.x, std::sqrt(T));
-        n_p.y = generateGaussianNoise(p.y, std::sqrt(T));
+        n_p.x = distx(gen);
+        n_p.y = disty(gen);
 
         double n_e = get_energy(f, to, n_p);
 
@@ -182,5 +160,5 @@ int main(int, char **)
     gradient("funct2.csv", func2, point(32, 45), point(0, 0), 10000, 0.01);
 
     std::cout << "annealing" << std::endl;
-    annealing("funct1.csv", func1, point(32, 45), point(0, 1), 10000000, 1000000);
+    annealing("funct1.csv", func1, point(32, 45), point(0, 1), 100000, 1000);
 }
