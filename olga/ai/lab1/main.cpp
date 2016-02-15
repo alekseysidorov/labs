@@ -1,9 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include <functional>
 #include <cmath>
 
 // некоторые константы
-const double eps = 0.1; // заданная точность
+const double eps = 0.001; // заданная точность
 const double h = 0.000001; // приращение аргумента
 
 // тип исследуемой функции (возвращает double, принимает два аргумента типа double)
@@ -39,9 +40,12 @@ double length(double x, double y)
 }
 
 // простой градиентный спуск
-point gradient1(my_function f, point p, point to, int iters, double d)
+point gradient(std::string file, my_function f, point p, point to, int iters, double d)
 {
+    std::ofstream out(file);
+    out << "i;x;y;l" << std::endl;
     point p0 = p;
+    double fp0 = f(p0.x, p0.y);
     for (int i = 0; i < iters; ++i) {
         double dx = d_x(f, p.x, p.y);
         double dy = d_y(f, p.x, p.y);
@@ -55,15 +59,16 @@ point gradient1(my_function f, point p, point to, int iters, double d)
         dy = std::abs(p.y - to.y);
         double l = length(dx, dy);
 
-        std::cout << i << ";" << p.x << ";" << p.y << ";" << l << std::endl;
+        out << i << ";" << p.x << ";" << p.y << ";" << l << std::endl;
 
         // вычисляем дельту между предыдущим и этим шагом и выходим если она становится меньше eps
-        dx = std::abs(p.x - p0.x);
-        dy = std::abs(p.y - p0.y);
-        if (length(dx, dy) < eps * d) {
+        double fp = f(p.x, p.y);
+        l = std::abs(fp - fp0);
+        if (l < eps) {
             break;
         }
         p0 = p;
+        fp0 = fp;
     }
     return p;
 }
@@ -74,7 +79,15 @@ double func1(double x, double y)
     return 0.8 * std::pow(x, 2) + 0.5 * std::pow((y - 1), 2);
 }
 
+double func2(double x, double y)
+{
+    return x * x + y * y;
+}
+
 int main(int, char **)
 {
-    point p = gradient1(func1, point(27, 31), point(0, 1), 10000, 0.1);
+    std::cout << "func1" << std::endl;
+    gradient("funct1.csv", func1, point(32, 45), point(0, 1), 10000, 0.01);
+    std::cout << "func2" << std::endl;
+    gradient("funct2.csv", func2, point(32, 45), point(0, 0), 10000, 0.01);
 }
