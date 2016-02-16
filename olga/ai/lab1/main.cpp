@@ -15,12 +15,17 @@ typedef std::function<double (double x, double y)> my_function;
 /// набор исследуемых функий
 double func1(double x, double y)
 {
-    return 0.8 * std::pow(x, 2) + 0.5 * std::pow((y - 1), 2);
+    return 0.5 * std::pow(x, 2) + 0.5 * (y - 1) * (y - 1);
 }
 
 double func2(double x, double y)
 {
-    return x * x + y * y;
+    return x * x + std::pow(y, 4);
+}
+
+double func3(double x, double y)
+{
+    return y / std::sin(x) * x;
 }
 
 struct point
@@ -153,12 +158,20 @@ int main(int, char **)
 {
     std::srand(time(nullptr));
 
+    int its = 1000;
+
     std::cout << "gradient" << std::endl;
     std::cout << "func1" << std::endl;
-    gradient("funct1.csv", func1, point(32, 45), point(0, 1), 10000, 0.01);
+    gradient("g1.csv", func1, point(32, 45), point(0, 1), its, 0.01);
     std::cout << "func2" << std::endl;
-    gradient("funct2.csv", func2, point(32, 45), point(0, 0), 10000, 0.01);
+    gradient("g2.csv", func2, point(32, 45), point(0, 0), its, 0.01);
+    std::cout << "func3" << std::endl;
+    gradient("g3.csv", func3, point(32, 45), point(0, 0), its, 0.01);
 
     std::cout << "annealing" << std::endl;
-    annealing("funct1.csv", func1, point(32, 45), point(0, 1), 100000, 1000);
+    annealing("a1.csv", func1, point(32, 45), point(0, 1), its, 1000);
+    std::cout << "annealing" << std::endl;
+    annealing("a2.csv", func2, point(32, 45), point(0, 1), its, 1000);
+    std::cout << "annealing" << std::endl;
+    annealing("a3.csv", func3, point(32, 45), point(0, 1), its, 1000);
 }
