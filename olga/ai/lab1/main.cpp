@@ -6,8 +6,8 @@
 #include <random>
 
 // некоторые константы
-const double eps = 0.001; // заданная точность
-const double h = 0.000001; // приращение аргумента
+const double eps = 0.0001; // заданная точность
+const double h = 0.000000001; // приращение аргумента
 
 // тип исследуемой функции (возвращает double, принимает два аргумента типа double)
 typedef std::function<double (double x, double y)> my_function;
@@ -15,17 +15,22 @@ typedef std::function<double (double x, double y)> my_function;
 /// набор исследуемых функий
 double func1(double x, double y)
 {
-    return 0.5 * std::pow(x, 2) + 0.5 * (y - 1) * (y - 1);
+    return 0.5*std::pow(x,2)+0.9*std::pow(y-7, 2);
 }
 
 double func2(double x, double y)
 {
-    return x * x + std::pow(y, 4);
+    return 17*std::pow(x-1,2)+0.3*std::pow(y+6,2);
 }
 
 double func3(double x, double y)
 {
-    return y / std::sin(x) * x;
+    return 2*std::pow(x,2)+0.5*std::pow(y,2);
+}
+
+double func4(double x, double y)
+{
+    return -10 * std::sin(5*std::pow(x,2)+M_PI*std::pow(y,2))/(5*std::pow(x,2)+M_PI*std::pow(y,2));
 }
 
 struct point
@@ -63,7 +68,7 @@ double length(double x, double y)
 point gradient(std::string file, my_function f, point p, point to, int iters, double d)
 {
     std::ofstream out(file);
-    out << "i;x;y;l" << std::endl;
+    out << "i;l" << std::endl;
     point p0 = p;
     double fp0 = f(p0.x, p0.y);
     for (int i = 0; i < iters; ++i) {
@@ -78,8 +83,7 @@ point gradient(std::string file, my_function f, point p, point to, int iters, do
         dx = std::abs(p.x - to.x);
         dy = std::abs(p.y - to.y);
         double l = length(dx, dy);
-
-        out << i << ";" << p.x << ";" << p.y << ";" << l << std::endl;
+        out << i << ";" << l << std::endl;
 
         // вычисляем дельту между предыдущим и этим шагом и выходим если она становится меньше eps
         double fp = f(p.x, p.y);
@@ -90,6 +94,7 @@ point gradient(std::string file, my_function f, point p, point to, int iters, do
         p0 = p;
         fp0 = fp;
     }
+    std::cout << file << ": " << p.x << ", " << p.y << " f=" << f(p.x, p.y) << std::endl;
     return p;
 }
 
@@ -111,7 +116,9 @@ double dec_temperature(double T, int iter)
 /// значение энергии
 double get_energy(my_function f, point a, point b)
 {
-    return std::abs(f(b.x, b.y) - f(a.x, a.y));
+    double r1 = f(b.x, b.y);
+    double r2 = f(a.x, a.y);
+    return std::abs(r2 - r1);
 }
 
 // метод имитации отжига
@@ -122,7 +129,7 @@ point annealing(std::string file, my_function f, point p, point to, int iters, d
     std::mt19937 gen(rd());
 
     std::ofstream out(file);
-    out << "i;x;y;l" << std::endl;
+    out << "i;l" << std::endl;
 
     double e = get_energy(f, to, p);
     double T = T_0;
@@ -150,7 +157,15 @@ point annealing(std::string file, my_function f, point p, point to, int iters, d
             }
         }
         T = dec_temperature(T_0, i);
+
+        // вычисляем расстояние до истинного минимума
+        double dx = std::abs(p.x - to.x);
+        double dy = std::abs(p.y - to.y);
+        double l = length(dx, dy);
+
+        out << i << ";" << l << std::endl;
     }
+    std::cout << file << ": " << p.x << ", " << p.y << " f=" << f(p.x, p.y) << std::endl;
     return p;
 }
 
@@ -158,20 +173,28 @@ int main(int, char **)
 {
     std::srand(time(nullptr));
 
-    int its = 1000;
+    int its = 500; //количество итераций
+    point po(24, 32);
 
     std::cout << "gradient" << std::endl;
-    std::cout << "func1" << std::endl;
-    gradient("g1.csv", func1, point(32, 45), point(0, 1), its, 0.01);
-    std::cout << "func2" << std::endl;
-    gradient("g2.csv", func2, point(32, 45), point(0, 0), its, 0.01);
-    std::cout << "func3" << std::endl;
-    gradient("g3.csv", func3, point(32, 45), point(0, 0), its, 0.01);
+    gradient("g1.csv", func1, po, point(0, 7), its, 0.1);
+    gradient("g2.csv", func2, po, point(1, -6), its, 0.1);
+    gradient("g3.csv", func3, po, point(0, 0), its, 0.1);
+    gradient("l1.csv", func4, point(1, 1), point(0.00001, 0.00001), its, 0.1);
+    gradient("l2.csv", func4, point(3, 3), point(0.00001, 0.00001), its, 1);
 
-    std::cout << "annealing" << std::endl;
-    annealing("a1.csv", func1, point(32, 45), point(0, 1), its, 1000);
-    std::cout << "annealing" << std::endl;
-    annealing("a2.csv", func2, point(32, 45), point(0, 1), its, 1000);
-    std::cout << "annealing" << std::endl;
-    annealing("a3.csv", func3, point(32, 45), point(0, 1), its, 1000);
+    std::cout << "an1" << std::endl;
+    annealing("an1_1.csv", func1, po, point(0, 7), its, 1000);
+    annealing("an1_2.csv", func2, po, point(1, -6), its, 1000);
+    annealing("an1_3.csv", func3, po, point(0, 0), its, 1000);
+
+    std::cout << "an2" << std::endl;
+    annealing("an2_1.csv", func1, po, point(1, -6), its, 10);
+    annealing("an2_2.csv", func2, po, point(1, -6), its, 100);
+    annealing("an2_3.csv", func2, po, point(1, -6), its, 10000);
+
+    std::cout << "an3" << std::endl;
+    annealing("an3_1.csv", func4, point(3, 3), point(0.00001, 0.00001), its, 10);
+    annealing("an3_2.csv", func4, point(3, 3), point(0.00001, 0.00001), its, 100);
+    annealing("an3_3.csv", func4, point(3, 3), point(0.00001, 0.00001), its, 1000);
 }
