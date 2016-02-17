@@ -4,6 +4,7 @@
 #include <cmath>
 #include <limits>
 #include <random>
+#include <vector>
 
 // некоторые константы
 const double eps = 0.0001; // заданная точность
@@ -39,6 +40,12 @@ struct point
     double y;
 
     point(double x_, double y_) : x(x_), y(y_) {}
+    point() {}
+};
+
+struct result {
+    point p; // конечная точка
+    std::vector<double> steps; // итерации
 };
 
 /// метод градиентного спуска
@@ -65,16 +72,16 @@ double length(double x, double y)
 }
 
 // простой градиентный спуск
-point gradient(std::string file, my_function f, point p, point to, int iters, double d)
+result gradient(my_function f, point p, point to, int iters, double d)
 {
-    std::ofstream out(file);
-    out << "i;l" << std::endl;
+    result r;
+
     point p0 = p;
     double fp0 = f(p0.x, p0.y);
     for (int i = 0; i < iters; ++i) {
         double dx = d_x(f, p.x, p.y);
         double dy = d_y(f, p.x, p.y);
-        double n = length(p.x, p.y);
+        double n = length(dx, dy);
 
         p.x -= d * (dx / n);
         p.y -= d * (dy / n);
@@ -83,19 +90,20 @@ point gradient(std::string file, my_function f, point p, point to, int iters, do
         dx = std::abs(p.x - to.x);
         dy = std::abs(p.y - to.y);
         double l = length(dx, dy);
-        out << i << ";" << l << std::endl;
+        r.steps.push_back(l);
 
         // вычисляем дельту между предыдущим и этим шагом и выходим если она становится меньше eps
         double fp = f(p.x, p.y);
         l = std::abs(fp - fp0);
         if (l < eps) {
-            break;
+            //break; на самом деле выключаем ради графиков
         }
         p0 = p;
         fp0 = fp;
     }
-    std::cout << file << ": " << p.x << ", " << p.y << " f=" << f(p.x, p.y) << std::endl;
-    return p;
+    std::cout << "f("  << p.x << ", " << p.y << ") = " << f(p.x, p.y) << std::endl;
+    r.p = p;
+    return r;
 }
 
 /// метод имитации отжига
@@ -114,24 +122,21 @@ double dec_temperature(double T, int iter)
 }
 
 /// значение энергии
-double get_energy(my_function f, point a, point b)
+double delta_energy(my_function f, point a, point b)
 {
     double r1 = f(b.x, b.y);
     double r2 = f(a.x, a.y);
-    return std::abs(r2 - r1);
+    return r2 - r1;
 }
 
 // метод имитации отжига
-point annealing(std::string file, my_function f, point p, point to, int iters, double T_0)
+result annealing(my_function f, point p, point to, int iters, double T_0)
 {
+    result r;
     // генератор случайных чисел
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    std::ofstream out(file);
-    out << "i;l" << std::endl;
-
-    double e = get_energy(f, to, p);
     double T = T_0;
     for (int i = 0; i < iters; ++i) {
         // нормальное распределение, с помощью него высчитываем новое значение точки
@@ -142,18 +147,16 @@ point annealing(std::string file, my_function f, point p, point to, int iters, d
         n_p.x = distx(gen);
         n_p.y = disty(gen);
 
-        double n_e = get_energy(f, to, n_p);
+        double de = delta_energy(f, n_p, p);
 
         // новое значение энергии лучше
-        if (n_e < e) {
+        if (de < 0) {
             p = n_p;
-            e = n_e;
         } else {
-            double probality = h_prob(n_e - e, T);
+            double probality = h_prob(de, T);
             double v = double(rand()) / double(RAND_MAX);
             if (v <= probality) {
                 p = n_p;
-                e = n_e;
             }
         }
         T = dec_temperature(T_0, i);
@@ -163,38 +166,101 @@ point annealing(std::string file, my_function f, point p, point to, int iters, d
         double dy = std::abs(p.y - to.y);
         double l = length(dx, dy);
 
-        out << i << ";" << l << std::endl;
+        r.steps.push_back(l);
     }
-    std::cout << file << ": " << p.x << ", " << p.y << " f=" << f(p.x, p.y) << std::endl;
-    return p;
+    std::cout << "f("  << p.x << ", " << p.y << ") = " << f(p.x, p.y) << std::endl;
+    r.p = p;
+    return r;
 }
 
 int main(int, char **)
 {
     std::srand(time(nullptr));
 
-    int its = 500; //количество итераций
     point po(24, 32);
 
-    std::cout << "gradient" << std::endl;
-    gradient("g1.csv", func1, po, point(0, 7), its, 0.1);
-    gradient("g2.csv", func2, po, point(1, -6), its, 0.1);
-    gradient("g3.csv", func3, po, point(0, 0), its, 0.1);
-    gradient("l1.csv", func4, point(1, 1), point(0.00001, 0.00001), its, 0.1);
-    gradient("l2.csv", func4, point(3, 3), point(0.00001, 0.00001), its, 1);
+    int its = 800; //количество итераций (намерено ограничиваем так, чтобы график получился наглядным)
+    std::cout << "g1" << std::endl;
 
-    std::cout << "an1" << std::endl;
-    annealing("an1_1.csv", func1, po, point(0, 7), its, 1000);
-    annealing("an1_2.csv", func2, po, point(1, -6), its, 1000);
-    annealing("an1_3.csv", func3, po, point(0, 0), its, 1000);
+    { // вложеный блок, чтобы не ошибиться случайно
+        result r1 = gradient(func1, po, point(0, 7), its, 0.1);
+        result r2 = gradient(func2, po, point(1, -6), its, 0.1);
+        result r3 = gradient(func3, po, point(0, 0), its, 0.1);
 
-    std::cout << "an2" << std::endl;
-    annealing("an2_1.csv", func1, po, point(1, -6), its, 10);
-    annealing("an2_2.csv", func2, po, point(1, -6), its, 100);
-    annealing("an2_3.csv", func2, po, point(1, -6), its, 10000);
+        std::ofstream out("g1.csv");
+        out << "i;f1;f2;f3" << std::endl;
+        for (int i = 0; i < its; ++i) {
+            out << i << ";"
+                << r1.steps[i] << ";"
+                << r2.steps[i] << ";"
+                << r3.steps[i] << std::endl;
 
-    std::cout << "an3" << std::endl;
-    annealing("an3_1.csv", func4, point(3, 3), point(0.00001, 0.00001), its, 10);
-    annealing("an3_2.csv", func4, point(3, 3), point(0.00001, 0.00001), its, 100);
-    annealing("an3_3.csv", func4, point(3, 3), point(0.00001, 0.00001), its, 1000);
+        }
+    }
+
+    std::cout << "g2" << std::endl;
+    { // вложеный блок, чтобы не ошибиться случайно
+        result r1 = gradient(func4, point(0.5, 0.5), point(0, 0), its, 0.001);
+        result r2 = gradient(func4, point(3, 3), point(0, 0), its, 0.001);
+
+        std::ofstream out("g2.csv");
+        out << "i;(0.5, 0.5);(3, 3);" << std::endl;
+        for (int i = 0; i < its; ++i) {
+            out << i << ";"
+                << r1.steps[i] << ";"
+                << r2.steps[i] << std::endl;
+
+        }
+    }
+
+    std::cout << "a1" << std::endl;
+    { // вложеный блок, чтобы не ошибиться случайно
+        result r1 = annealing(func1, po, point(0, 7), its, 50);
+        result r2 = annealing(func2, po, point(1, -6), its, 50);
+        result r3 = annealing(func3, po, point(0, 0), its, 50);
+
+        std::ofstream out("a1.csv");
+        out << "i;f1;f2;f3" << std::endl;
+        for (int i = 0; i < its; ++i) {
+            out << i << ";"
+                << r1.steps[i] << ";"
+                << r2.steps[i] << ";"
+                << r3.steps[i] << std::endl;
+
+        }
+    }
+
+    std::cout << "a2" << std::endl;
+    { // вложеный блок, чтобы не ошибиться случайно
+        result r1 = annealing(func1, po, point(0, 7), its, 200);
+        result r2 = annealing(func2, po, point(1, -6), its, 200);
+        result r3 = annealing(func3, po, point(0, 0), its, 200);
+
+        std::ofstream out("a2.csv");
+        out << "i;f1;f2;f3" << std::endl;
+        for (int i = 0; i < its; ++i) {
+            out << i << ";"
+                << r1.steps[i] << ";"
+                << r2.steps[i] << ";"
+                << r3.steps[i] << std::endl;
+
+        }
+    }
+
+    std::cout << "a3" << std::endl;
+    { // вложеный блок, чтобы не ошибиться случайно
+        result r1 = annealing(func4, point(1, 1), point(0, 0), its, 0.5);
+        result r2 = annealing(func4, point(1, 1), point(0, 0), its, 5);
+        result r3 = annealing(func4, point(1, 1), point(0, 0), its, 50);
+
+        std::ofstream out("a3.csv");
+        out << "i;T=0.5;T=5;T=50" << std::endl;
+        for (int i = 0; i < its; ++i) {
+            out << i << ";"
+                << r1.steps[i] << ";"
+                << r2.steps[i] << ";"
+                << r3.steps[i] << std::endl;
+
+        }
+    }
 }
