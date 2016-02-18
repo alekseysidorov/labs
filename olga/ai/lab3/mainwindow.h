@@ -4,30 +4,29 @@
 #include <QMainWindow>
 #include <QPushButton>
 
+const int n = 3; // размер игрового поля
+
 namespace Ui {
 class MainWindow;
 }
 
-class Cell : public QPushButton
+class Field
 {
-    Q_OBJECT
 public:
     enum Status {
-        None,
-        Tick, // крестик
-        Tack // нолик
+        None = 0,
+        Tick = 1, // крестик
+        Tack = -1 // нолик
     };
 
-    Cell(QWidget *p);
+    Field(int s);
 
-    void tick();
-    void tack();
-
-    Status status();
+    Status statusAt(int i, int j);
+    void setStatus(int i, int j, Status status);
+    bool canTurn(int i, int j);
 private:
-    void onClicked();
-
-    Status m_status = None;
+    int m_size;
+    QVector<Status> m_statuses;
 };
 
 class MainWindow : public QMainWindow
@@ -38,14 +37,17 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-    Cell *cellAt(int i, int j);
-    bool canTurn(int i, int j);
+    QPushButton *cellAt(int i, int j);
 private:
     void onClicked();
+    void update();
 
     Ui::MainWindow *ui;
 
-    QList<Cell*> m_cells;
+    QList<QPushButton*> m_cells;
+    Field m_field;
+    Field::Status m_player;
+
 };
 
 #endif // MAINWINDOW_H

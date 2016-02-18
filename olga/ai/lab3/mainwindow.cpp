@@ -1,21 +1,24 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-const int n = 3; // размер игрового поля
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    m_field(n)
 {
+    m_player = Field::Tick;
+
     ui->setupUi(this);
 
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            Cell *c = new Cell(this);
+            QPushButton *c = new QPushButton(this);
+            c->setProperty("i", i);
+            c->setProperty("j", j);
             c->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
             ui->gridLayout->addWidget(c, i, j);
             m_cells.push_back(c);
-            connect(c, &Cell::clicked, this, &MainWindow::onClicked);
+            connect(c, &QPushButton::clicked, this, &MainWindow::onClicked);
         }
     }
 }
@@ -25,57 +28,62 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-Cell *MainWindow::cellAt(int i, int j)
+QPushButton *MainWindow::cellAt(int i, int j)
 {
     return m_cells[i * n + j];
 }
 
-bool MainWindow::canTurn(int i, int j)
+void MainWindow::onClicked()
 {
-    // проверяем границы, если заведомо за них вылезаем, то ходить не можем
-    if (i < 0 || j < 0 || i >= n || j >= n)
-        return false;
-    // ходить мы можем только в пустую клетку
-    return cellAt(i, j)->status() == Cell::None;
+    QObject *s = sender();
+    int i = s->property("i").toInt();
+    int j = s->property("j").toInt();
+
+    m_field.setStatus(i, j, m_player);
+    update();
+
+    // ход компьютера
 }
 
-void MainWindow::onClicked()
+void MainWindow::update()
 {
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            if (canTurn(i, j)) {
-                cellAt(i, j)->tack();
-                return;
+            QPushButton *c = cellAt(i, j);
+
+            Field::Status s = m_field.statusAt(i, j);
+            if (s == Field::Tick) {
+                c->setText("X");
+                c->setEnabled(false);
+            } else if (s == Field::Tack) {
+                c->setText("O");
+                c->setEnabled(false);
             }
         }
     }
 }
 
-Cell::Cell(QWidget *p) : QPushButton(p)
+Field::Field(int s)
 {
-    connect(this, &Cell::clicked, this, &Cell::onClicked);
+    m_size = s;
+    m_statuses.resize(s * s);
 }
 
-void Cell::tick()
+Field::Status Field::statusAt(int i, int j)
 {
-    setText("X");
-    setEnabled(false);
-    m_status = Tick;
+    return m_statuses[i * m_size + j];
 }
 
-void Cell::tack()
+void Field::setStatus(int i, int j, Field::Status status)
 {
-    setText("O");
-    setEnabled(false);
-    m_status = Tack;
+    m_statuses[i * m_size + j] = status;
 }
 
-Cell::Status Cell::status()
+bool Field::canTurn(int i, int j)
 {
-    return m_status;
-}
-
-void Cell::onClicked()
-{
-    tick(); // Игрок играет за крестики
+    // проверяем границы, если заведомо за них вылезаем, то ходить не можем
+    if (i < 0 || j < 0 || i >= n || j >= n)
+        return false;
+    // ходить мы можем только в пустую клетку
+    return statusAt(i, j) == None;
 }
