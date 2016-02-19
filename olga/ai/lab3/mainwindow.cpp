@@ -63,6 +63,34 @@ void MainWindow::update()
     }
 }
 
+int MainWindow::minMax(Field::Status player, Field field, int depth)
+{
+    // больше ходить некуда, возвращаем оценку
+    if (field.isTerminal(player))
+        return field.heuristic(player);
+
+    int score = INT_MIN;
+    for (Field child : field.children(player)) {
+        int s = maxMin(player, child, depth + 1);
+        score = std::max(s, score);
+    }
+    return score;
+}
+
+int MainWindow::maxMin(Field::Status player, Field field, int depth)
+{
+    // больше ходить некуда, возвращаем оценку
+    if (field.isTerminal(player))
+        return field.heuristic(player);
+
+    int score = INT_MAX;
+    for (Field child : field.children(player)) {
+        int s = minMax(player, child, depth + 1);
+        score = std::max(s, score);
+    }
+    return score;
+}
+
 Field::Field(int s)
 {
     m_size = s;
@@ -86,4 +114,75 @@ bool Field::canTurn(int i, int j)
         return false;
     // ходить мы можем только в пустую клетку
     return statusAt(i, j) == None;
+}
+
+// список всех возможных ходов, которые можно сделать для игрока
+// версия совсем в лоб
+QVector<Field> Field::children(Field::Status player)
+{
+    QVector<Field> c;
+    for (int i = 0; i < m_size; ++i) {
+        for (int j = 0; j < m_size; ++j) {
+            if (canTurn(i, j)) {
+                // делаем копию текущего поля
+                Field o = *this;
+                c.push_back(o);
+            }
+        }
+    }
+    return c;
+}
+
+// функция по очкам определяет насколько хорош данный расклад (максимально длинная штука)
+int Field::heuristic(Field::Status player)
+{
+    int s = diagSum(player, 0, 0, 1, 1);
+    int res = s;
+    s = diagSum(player, m_size - 1, 0, -1, 1); // считаем вторую диагональ
+    res = std::max(s, res); // выбираем самую длинную
+
+    // считаем столбцы
+    for (int i = 0; i < m_size; ++i) {
+        s = diagSum(player, i, 0, 0, 1);
+        res = std::max(s, res);
+    }
+
+    // считаем строки
+    for (int i = 0; i < m_size; ++i) {
+        s = diagSum(player, 0, i, 1, 0);
+        res = std::max(s, res);
+    }
+
+    return res;
+}
+
+bool Field::isTerminal(Field::Status player)
+{
+    if (heuristic(player) == m_size)
+        return true; // игрок победил
+    if (heuristic(-player) == m_size)
+        return true; // победил противник
+
+    for (int i = 0; i < m_size; ++i) {
+        for (int j = 0; j < m_size; ++j) {
+            if (statusAt(i, j) == None)
+                return false;
+        }
+    }
+    return true;
+}
+
+// считает сумму диагоналей, i, j точка старта в x, y лежит направление
+// также можно и обычные линии считать, если x или y задавать нулевыми
+int Field::diagSum(Field::Status player, int i, int j, int x, int y)
+{
+    int sum = 0;
+    while (sum < 3) {
+        if (statusAt(i, j) == player)
+            ++sum;
+        i += x; j += y;
+
+        if (i < 0 || j < 0 || i >= n || j >= n)
+            break;
+    }
 }

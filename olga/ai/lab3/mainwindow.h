@@ -24,6 +24,12 @@ public:
     Status statusAt(int i, int j);
     void setStatus(int i, int j, Status status);
     bool canTurn(int i, int j);
+
+    QVector<Field> children(Status player);
+    int heuristic(Status player);
+    bool isTerminal(Status player);
+
+    int diagSum(Status player, int i, int j, int x, int y);
 private:
     int m_size;
     QVector<Status> m_statuses;
@@ -41,6 +47,8 @@ public:
 private:
     void onClicked();
     void update();
+
+    int minMax(Field::Status player, Field field, int depth);
 
     Ui::MainWindow *ui;
 
