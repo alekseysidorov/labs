@@ -20,7 +20,8 @@ struct point
     point() {}
 };
 
-// тип фитнесс-функции (возвращает double, принимает два аргумента типа double)
+// тип фитнесс-функции
+// (возвращает double, принимает два аргумента типа double)
 typedef std::function<double (point)> my_function;
 
 /// набор фитнесс-функций
@@ -36,7 +37,8 @@ double func2(point p)
 
 double func3(point p)
 {
-    return -10 * std::sin(5*std::pow(p.x,2)+M_PI*std::pow(p.y,2))/(5*std::pow(p.x,2)+M_PI*std::pow(p.y,2));
+    return -10 * std::sin(5*std::pow(p.x,2)+M_PI*std::pow(p.y,2))
+            /(5*std::pow(p.x,2)+M_PI*std::pow(p.y,2));
 }
 
 double length(point p)
@@ -51,7 +53,8 @@ double length(point p)
 void sort_population(my_function f, std::vector<point> &population)
 {
     // лямбда функция (увы, но без неё тут никак)
-    // в квадратных скобках перечисляются переменные, которые доступны внутри функции, в остальном это обычная такая функция.
+    // в квадратных скобках перечисляются переменные,
+    // которые доступны внутри функции, в остальном это обычная такая функция.
     auto populator = [f](point a, point b) {
         return f(a) < f(b);
     };
@@ -68,7 +71,8 @@ point make_love(point mother, point father)
 // сам генетический алгоритм
 // int ps = 50; // размер популяции
 // int mf = 2; // частота мутаций
-point genetic_algor(std::vector<double> &distances, my_function f, point minP, point maxP, point g, int ps = 50, int mf = 5)
+point genetic_algor(std::vector<double> &distances, my_function f, point minP,
+                    point maxP, point g, int ps = 50, int mf = 5)
 {
 
 
@@ -77,7 +81,8 @@ point genetic_algor(std::vector<double> &distances, my_function f, point minP, p
     std::uniform_real_distribution<double> ygen(minP.y, maxP.y); // диапазон по y
     std::uniform_real_distribution<double> mutagen(-7, 8); // диапазон мутаций
 
-    // случайным образом создаем исходную популяцию и сортируем её по фитнесс-функции
+    // случайным образом создаем исходную популяцию
+    // и сортируем её по фитнесс-функции
     std::vector<point> population;
     for (int i = 0; i < 100; ++i) {
         point p(xgen(gen), ygen(gen));
