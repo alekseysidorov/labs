@@ -30,7 +30,8 @@ public:
 
     QVector<Field> children(int player);
     int heuristic(int player);
-    bool isTerminal(int player);
+    int maxSum(int player);
+    bool isTerminal(int player, int depth);
 
     int diagSum(int player, int i, int j, int x, int y);
 private:
@@ -60,8 +61,10 @@ private:
     void onClicked();
     void update();
     void newGame();
+    bool gameOver();
 
-    int maxMin(int player, Field field, int depth);
+    int min(int player, Field field, int depth);
+    int max(int player, Field field, int depth);
 
     Ui::MainWindow *ui;
 

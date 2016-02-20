@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QDebug>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -43,37 +45,37 @@ void MainWindow::onClicked()
     int j = s->property("j").toInt();
 
     m_field.turn(i, j, m_player);
+    // обновляем интерфейс
+    update();
+
+    // проверяем что игра еще не закончилась
+    if (gameOver())
+        return;
+
+    qDebug() << "player: " << m_field.heuristic(m_player);
+    qDebug() << "computer: " << m_field.heuristic(-m_player);
 
     // ход компьютера
+    int m_computer = -m_player;
     // считаем возможные ходы и их оценки
     QVector<Turn> turns;
-    for (auto child : m_field.children(-m_player)) {
+    for (auto child : m_field.children(m_computer)) {
         Turn turn;
         turn.field = child;
-        turn.score = maxMin(-m_player, child, 0);
+        turn.score = max(m_computer, child, 0);
         turns.push_back(turn);
     }
 
+    // делаем ход компьютера, если есть возможность
     if (!turns.isEmpty()) {
         // сортируем ходы (если они есть)
         std::sort(turns.begin(), turns.end());
-        m_field = turns[0].field; // берем самый лучший ход
+        m_field = turns.last().field; // берем самый лучший ход
+        // обновляем интерфейс
+        update();
+        if (gameOver())
+            return;
     }
-
-    // игра закончилась
-    if (m_field.isTerminal(m_player)) {
-       //считаем очки
-        int score = m_field.heuristic(m_player);
-        if (score == m_field.size)
-            ui->label->setText("Игрок выиграл");
-        else
-            ui->label->setText("Компьютер выиграл");
-
-        ui->pushButton->setEnabled(true);
-        ui->comboBox->setEnabled(true);
-    }
-    // обновляем интерфейс
-    update();
 }
 
 void MainWindow::update()
@@ -112,19 +114,50 @@ void MainWindow::newGame()
     update();
 }
 
-// Оценивает состояние игрового поля после хода MIN.
-// field состояние поля в результате хода игрока MIN.
-// player идентификатор игрока MAX.
-int MainWindow::maxMin(int player, Field field, int depth)
+// Проверка что игра закончилась
+bool MainWindow::gameOver()
+{
+    // игра закончилась
+    if (m_field.heuristic(m_player) == m_field.size
+            || m_field.heuristic(-m_player) == m_field.size) {
+       //считаем очки
+        int score = m_field.heuristic(m_player);
+        if (score == m_field.size)
+            ui->label->setText("Игрок выиграл");
+        else
+            ui->label->setText("Компьютер выиграл");
+
+        ui->pushButton->setEnabled(true);
+        ui->comboBox->setEnabled(true);
+        return true;
+    }
+    return false;
+}
+
+int MainWindow::max(int player, Field field, int depth)
 {
     // больше ходить некуда, возвращаем оценку
-    if (field.isTerminal(player))
+    if (field.isTerminal(player, depth))
         return field.heuristic(player);
 
     int score = INT_MIN;
     for (Field child : field.children(player)) {
-        int s = maxMin(-player, child, depth + 1);
+        int s = min(-player, child, depth + 1);
         score = std::max(s, score);
+    }
+    return score;
+}
+
+int MainWindow::min(int player, Field field, int depth)
+{
+    // больше ходить некуда, возвращаем оценку
+    if (field.isTerminal(player, depth))
+        return -field.heuristic(player);
+
+    int score = INT_MAX;
+    for (Field child : field.children(player)) {
+        int s = max(-player, child, depth + 1);
+        score = std::min(s, score);
     }
     return score;
 }
@@ -173,8 +206,16 @@ QVector<Field> Field::children(int player)
     return c;
 }
 
-// функция по очкам определяет насколько хорош данный расклад (максимально длинная штука)
+
 int Field::heuristic(int player)
+{
+    if (maxSum(-player) == size)
+        return -size;
+    return maxSum(player);
+}
+
+// функция по очкам определяет насколько хорош данный расклад (максимально длинная штука)
+int Field::maxSum(int player)
 {
     int s = diagSum(player, 0, 0, 1, 1);
     int res = s;
@@ -196,8 +237,11 @@ int Field::heuristic(int player)
     return res;
 }
 
-bool Field::isTerminal(int player)
+bool Field::isTerminal(int player, int depth)
 {
+    if (depth >= (size + 2))
+        return true;
+
     if (heuristic(player) == size)
         return true; // игрок победил
     if (heuristic(-player) == size)
