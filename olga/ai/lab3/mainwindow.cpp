@@ -50,7 +50,7 @@ void MainWindow::onClicked()
     for (auto child : m_field.children(-m_player)) {
         Turn turn;
         turn.field = child;
-        turn.score = minMax(-m_player, child, 0);
+        turn.score = maxMin(-m_player, child, 0);
         turns.push_back(turn);
     }
 
@@ -112,20 +112,9 @@ void MainWindow::newGame()
     update();
 }
 
-int MainWindow::minMax(int player, Field field, int depth)
-{
-    // больше ходить некуда, возвращаем оценку
-    if (field.isTerminal(player))
-        return -field.heuristic(player);
-
-    int score = INT_MAX;
-    for (Field child : field.children(player)) {
-        int s = maxMin(-player, child, depth + 1);
-        score = std::min(s, score);
-    }
-    return score;
-}
-
+// Оценивает состояние игрового поля после хода MIN.
+// field состояние поля в результате хода игрока MIN.
+// player идентификатор игрока MAX.
 int MainWindow::maxMin(int player, Field field, int depth)
 {
     // больше ходить некуда, возвращаем оценку
@@ -134,7 +123,7 @@ int MainWindow::maxMin(int player, Field field, int depth)
 
     int score = INT_MIN;
     for (Field child : field.children(player)) {
-        int s = minMax(-player, child, depth + 1);
+        int s = maxMin(-player, child, depth + 1);
         score = std::max(s, score);
     }
     return score;
@@ -212,7 +201,7 @@ bool Field::isTerminal(int player)
     if (heuristic(player) == size)
         return true; // игрок победил
     if (heuristic(-player) == size)
-        return true; // победил противник
+        return true; // противник победил
 
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {

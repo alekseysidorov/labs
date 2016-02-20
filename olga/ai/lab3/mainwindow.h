@@ -61,7 +61,6 @@ private:
     void update();
     void newGame();
 
-    int minMax(int player, Field field, int depth);
     int maxMin(int player, Field field, int depth);
 
     Ui::MainWindow *ui;
