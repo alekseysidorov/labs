@@ -62,7 +62,7 @@ void MainWindow::onClicked()
     for (auto child : m_field.children(m_computer)) {
         Turn turn;
         turn.field = child;
-        turn.score = max(m_computer, child, 0);
+        turn.score = max(m_player, child, 0);
         turns.push_back(turn);
     }
 
@@ -70,7 +70,7 @@ void MainWindow::onClicked()
     if (!turns.isEmpty()) {
         // сортируем ходы (если они есть)
         std::sort(turns.begin(), turns.end());
-        m_field = turns.last().field; // берем самый лучший ход
+        m_field = turns.first().field; // берем самый лучший ход
         // обновляем интерфейс
         update();
         if (gameOver())
@@ -118,14 +118,14 @@ void MainWindow::newGame()
 bool MainWindow::gameOver()
 {
     // игра закончилась
-    if (m_field.heuristic(m_player) == m_field.size
-            || m_field.heuristic(-m_player) == m_field.size) {
+    if (m_field.isTerminal(m_player) || m_field.isTerminal(-m_player)) {
        //считаем очки
-        int score = m_field.heuristic(m_player);
-        if (score == m_field.size)
+        if (m_field.heuristic(m_player) == m_field.size)
             ui->label->setText("Игрок выиграл");
-        else
+        else if (m_field.heuristic(-m_player) == m_field.size)
             ui->label->setText("Компьютер выиграл");
+        else
+            ui->label->setText("Ничья");
 
         ui->pushButton->setEnabled(true);
         ui->comboBox->setEnabled(true);
@@ -137,7 +137,7 @@ bool MainWindow::gameOver()
 int MainWindow::max(int player, Field field, int depth)
 {
     // больше ходить некуда, возвращаем оценку
-    if (field.isTerminal(player, depth))
+    if (field.isTerminal(player) || depth >= (field.size + 2))
         return field.heuristic(player);
 
     int score = INT_MIN;
@@ -151,7 +151,7 @@ int MainWindow::max(int player, Field field, int depth)
 int MainWindow::min(int player, Field field, int depth)
 {
     // больше ходить некуда, возвращаем оценку
-    if (field.isTerminal(player, depth))
+    if (field.isTerminal(player) || depth >= (field.size + 2))
         return -field.heuristic(player);
 
     int score = INT_MAX;
@@ -237,11 +237,8 @@ int Field::maxSum(int player)
     return res;
 }
 
-bool Field::isTerminal(int player, int depth)
+bool Field::isTerminal(int player)
 {
-    if (depth >= (size + 2))
-        return true;
-
     if (heuristic(player) == size)
         return true; // игрок победил
     if (heuristic(-player) == size)

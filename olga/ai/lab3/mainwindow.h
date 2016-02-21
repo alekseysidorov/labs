@@ -31,7 +31,7 @@ public:
     QVector<Field> children(int player);
     int heuristic(int player);
     int maxSum(int player);
-    bool isTerminal(int player, int depth);
+    bool isTerminal(int player);
 
     int diagSum(int player, int i, int j, int x, int y);
 private:
