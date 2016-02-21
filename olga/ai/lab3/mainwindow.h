@@ -45,9 +45,6 @@ struct Turn
     int score;
 };
 
-// оператор сравнения (нужен для сортировки)
-bool operator<(const Turn &a, const Turn &b);
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT

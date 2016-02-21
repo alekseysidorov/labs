@@ -58,19 +58,28 @@ void MainWindow::onClicked()
     // ход компьютера
     int m_computer = -m_player;
     // считаем возможные ходы и их оценки
-    QVector<Turn> turns;
+    QVector<Turn> turns; // массив наиболее благоприятных ходов (сюда попадут ходы с максимальной оценкой)
     for (auto child : m_field.children(m_computer)) {
         Turn turn;
         turn.field = child;
         turn.score = max(m_player, child, 0);
-        turns.push_back(turn);
+
+        // если нет списка ходов, просто добавляем новый
+        if (turns.isEmpty()) {
+            turns.push_back(turn);
+        } else {
+            // если новый ход с лучшей оценкой, то предыдущие записанные ходы можно смело удалять
+            if (turns.first().score > turn.score) {
+                turns.clear();
+                turns.push_back(turn);
+            } else if (turns.first().score == turn.score)
+                turns.push_back(turn);
+        }
     }
 
     // делаем ход компьютера, если есть возможность
     if (!turns.isEmpty()) {
-        // сортируем ходы (если они есть)
-        std::sort(turns.begin(), turns.end());
-        m_field = turns.first().field; // берем самый лучший ход
+        m_field = turns.first().field; // берем самый лучший ход (тут можно пытаться проводить дополнительную эвристику)
         // обновляем интерфейс
         update();
         if (gameOver())
@@ -267,9 +276,4 @@ int Field::diagSum(int player, int i, int j, int x, int y)
             break;
     }
     return sum;
-}
-
-bool operator<(const Turn &a, const Turn &b)
-{
-    return a.score < b.score;
 }
