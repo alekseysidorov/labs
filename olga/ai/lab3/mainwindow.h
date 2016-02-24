@@ -58,10 +58,18 @@ private:
     void onClicked();
     void update();
     void newGame();
-    bool gameOver();
+    bool isGameOver();
+    // ход компьютера по обычному минимаксу
+    void computerTurn();
 
-    int min(int player, Field field, int depth);
+    // обычный минимакс
+    int min(int player, Field field,int depth);
     int max(int player, Field field, int depth);
+    void minMaxTurn();
+    // альфа бета отсечение
+    int minAlphaBeta(int player, Field field, int alpha, int beta,  int depth);
+    int maxAlphaBeta(int player, Field field, int alpha, int beta,  int depth);
+    void alphaBetaTurn();
 
     Ui::MainWindow *ui;
 

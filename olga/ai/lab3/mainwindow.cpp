@@ -2,6 +2,8 @@
 #include "ui_mainwindow.h"
 
 #include <QDebug>
+#include <QElapsedTimer>
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -22,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
             m_cells.push_back(c);
             connect(c, &QPushButton::clicked, this, &MainWindow::onClicked);
         }
-    }    
+    }
 
     newGame();
     connect(ui->pushButton, &QPushButton::clicked, this, &MainWindow::newGame);
@@ -49,12 +51,97 @@ void MainWindow::onClicked()
     update();
 
     // проверяем что игра еще не закончилась
-    if (gameOver())
+    if (isGameOver())
         return;
 
-    qDebug() << "player: " << m_field.heuristic(m_player);
-    qDebug() << "computer: " << m_field.heuristic(-m_player);
+    computerTurn();
+}
 
+void MainWindow::update()
+{
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            QPushButton *c = cellAt(i, j);
+
+            int s = m_field.statusAt(i, j);
+            if (s == Field::Tick) {
+                c->setText("X");
+                c->setEnabled(false);
+            } else if (s == Field::Tack) {
+                c->setText("O");
+                c->setEnabled(false);
+            } else {
+                c->setText("");
+                c->setEnabled(true);
+            }
+        }
+    }
+}
+
+void MainWindow::newGame()
+{
+    std::cout << "Новая игра";
+    ui->pushButton->setEnabled(false);
+    ui->comboBox->setEnabled(false);
+    ui->label->setText("");
+
+    if (ui->comboBox->currentIndex() == 0)
+        m_player = Field::Tick;
+    else
+        m_player = Field::Tack;
+
+    m_field = Field(n);
+
+    if (m_player == Field::Tack)
+        computerTurn();
+    update();
+}
+
+// Проверка что игра закончилась
+bool MainWindow::isGameOver()
+{
+    // игра закончилась
+    if (m_field.isTerminal(m_player) || m_field.isTerminal(-m_player)) {
+       //считаем очки
+        if (m_field.heuristic(m_player) == m_field.size)
+            ui->label->setText("Игрок выиграл");
+        else if (m_field.heuristic(-m_player) == m_field.size)
+            ui->label->setText("Компьютер выиграл");
+        else
+            ui->label->setText("Ничья");
+
+        ui->pushButton->setEnabled(true);
+        ui->comboBox->setEnabled(true);
+        return true;
+    }
+    return false;
+}
+
+void MainWindow::computerTurn()
+{
+    // считаем затраченое время
+    QElapsedTimer timer;
+    timer.start();
+    alphaBetaTurn();
+    std::cout << "minMax=" << timer.nsecsElapsed() / 10e6 << "ms" << std::endl;
+}
+
+int MainWindow::max(int player, Field field, int depth)
+{
+    // больше ходить некуда, возвращаем оценку
+    if (field.isTerminal(player) || depth >= (field.size + 2))
+        return field.heuristic(player);
+
+    int score = INT_MIN;
+    for (Field child : field.children(player)) {
+        int s = min(-player, child, depth + 1);
+        score = std::max(s, score);
+    }
+    return score;
+}
+
+void MainWindow::minMaxTurn()
+{
     // ход компьютера
     int m_computer = -m_player;
     // считаем возможные ходы и их оценки
@@ -81,80 +168,9 @@ void MainWindow::onClicked()
     if (!turns.isEmpty()) {
         m_field = turns.first().field; // берем самый лучший ход (тут можно пытаться проводить дополнительную эвристику)
         // обновляем интерфейс
+        isGameOver();
         update();
-        if (gameOver())
-            return;
     }
-}
-
-void MainWindow::update()
-{
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            QPushButton *c = cellAt(i, j);
-
-            int s = m_field.statusAt(i, j);
-            if (s == Field::Tick) {
-                c->setText("X");
-                c->setEnabled(false);
-            } else if (s == Field::Tack) {
-                c->setText("O");
-                c->setEnabled(false);
-            } else {
-                c->setText("");
-                c->setEnabled(true);
-            }
-        }
-    }
-}
-
-void MainWindow::newGame()
-{
-    ui->pushButton->setEnabled(false);
-    ui->comboBox->setEnabled(false);
-    ui->label->setText("");
-
-    if (ui->comboBox->currentIndex() == 0)
-        m_player = Field::Tick;
-    else
-        m_player = Field::Tack;
-
-    m_field = Field(n);
-    update();
-}
-
-// Проверка что игра закончилась
-bool MainWindow::gameOver()
-{
-    // игра закончилась
-    if (m_field.isTerminal(m_player) || m_field.isTerminal(-m_player)) {
-       //считаем очки
-        if (m_field.heuristic(m_player) == m_field.size)
-            ui->label->setText("Игрок выиграл");
-        else if (m_field.heuristic(-m_player) == m_field.size)
-            ui->label->setText("Компьютер выиграл");
-        else
-            ui->label->setText("Ничья");
-
-        ui->pushButton->setEnabled(true);
-        ui->comboBox->setEnabled(true);
-        return true;
-    }
-    return false;
-}
-
-int MainWindow::max(int player, Field field, int depth)
-{
-    // больше ходить некуда, возвращаем оценку
-    if (field.isTerminal(player) || depth >= (field.size + 2))
-        return field.heuristic(player);
-
-    int score = INT_MIN;
-    for (Field child : field.children(player)) {
-        int s = min(-player, child, depth + 1);
-        score = std::max(s, score);
-    }
-    return score;
 }
 
 int MainWindow::min(int player, Field field, int depth)
@@ -169,6 +185,75 @@ int MainWindow::min(int player, Field field, int depth)
         score = std::min(s, score);
     }
     return score;
+}
+
+int MainWindow::minAlphaBeta(int player, Field field, int alpha, int beta, int depth)
+{
+    // больше ходить некуда, возвращаем оценку
+    if (field.isTerminal(player) || depth >= (field.size + 2))
+        return -field.heuristic(player);
+
+    int score = beta;
+    for (Field child : field.children(player)) {
+        int s = maxAlphaBeta(-player, child, alpha, score, depth + 1);
+        score = std::min(s, score);
+        if (score <= alpha)
+            return score;
+    }
+    return score;
+}
+
+int MainWindow::maxAlphaBeta(int player, Field field, int alpha, int beta, int depth)
+{
+    // больше ходить некуда, возвращаем оценку
+    if (field.isTerminal(player) || depth >= (field.size + 2))
+        return field.heuristic(player);
+
+    int score = alpha;
+    for (Field child : field.children(player)) {
+        int s = minAlphaBeta(-player, child, score, beta, depth + 1);
+        score = std::max(s, score);
+        if (score >= beta)
+            return score;
+    }
+    return score;
+}
+
+void MainWindow::alphaBetaTurn()
+{
+    // ход компьютера
+    int m_computer = -m_player;
+    // изначальные альфы и беты
+    int alpha = INT_MIN;
+    int beta = INT_MAX;
+
+    // считаем возможные ходы и их оценки
+    QVector<Turn> turns; // массив наиболее благоприятных ходов (сюда попадут ходы с максимальной оценкой)
+    for (auto child : m_field.children(m_computer)) {
+        Turn turn;
+        turn.field = child;
+        turn.score = maxAlphaBeta(m_player, child, alpha, beta, 0);
+
+        // если нет списка ходов, просто добавляем новый
+        if (turns.isEmpty()) {
+            turns.push_back(turn);
+        } else {
+            // если новый ход с лучшей оценкой, то предыдущие записанные ходы можно смело удалять
+            if (turns.first().score > turn.score) {
+                turns.clear();
+                turns.push_back(turn);
+            } else if (turns.first().score == turn.score)
+                turns.push_back(turn);
+        }
+    }
+
+    // делаем ход компьютера, если есть возможность
+    if (!turns.isEmpty()) {
+        m_field = turns.first().field; // берем самый лучший ход (тут можно пытаться проводить дополнительную эвристику)
+        // обновляем интерфейс
+        isGameOver();
+        update();
+    }
 }
 
 Field::Field(int s)
