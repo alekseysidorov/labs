@@ -6,8 +6,9 @@
 #include <QList>
 #include <vector>
 #include <ctime>
+#include <chrono>
 
-// своя функция, вот её нужно подменить виндовой
+// своя функция, вот её нужно подменить виндовой (скорее всего просто _getch)
 
 #include <stdio.h>
 #include <termios.h>
@@ -36,7 +37,7 @@ struct question
 struct answer
 {
     char ch;
-    int time;
+    double time;
 };
 
 // Загружалка вопросов из csv файла, в первом столбце вопрос, во втором y или n в зависимости от того, как на него отвечать надо
@@ -93,12 +94,14 @@ int main()
         question q = questions[i];
 
         std::cout << q.text << std::endl;
-        int t = std::clock();
+        auto t1 = std::chrono::high_resolution_clock::now(); // честно взято из примера на cppreference
+
         ch = my_getchar();
         while (!is_answer(ch)) {
             ch = my_getchar();
         }
-        int d = std::clock() - t;
+        auto t2 = std::chrono::high_resolution_clock::now();
+        double d = std::chrono::duration<double, std::milli>(t2 - t1).count(); // считаем время в миллисекундах (для удобства)
         atime[q.num].time = d;
         atime[q.num].ch = ch;
 
