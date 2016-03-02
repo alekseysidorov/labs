@@ -264,11 +264,13 @@ Field::Field(int s)
 
 int Field::statusAt(int i, int j)
 {
+    // используем одномерный массив как двумерный
     return m_statuses[i * size + j];
 }
 
 void Field::turn(int i, int j, int status)
 {
+    // используем одномерный массив как двумерный
     m_statuses[i * size + j] = status;
 }
 

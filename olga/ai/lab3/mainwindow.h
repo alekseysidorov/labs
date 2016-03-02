@@ -35,6 +35,9 @@ public:
 
     int diagSum(int player, int i, int j, int x, int y);
 private:
+    // одномерный массив ячеек. То есть первая строка это ячейки от 0 до n - 1,
+    // вторая строка это ячейки от n до 2n - 1 и так далее.
+    // Таким образом можно не создавать сложные многомерные массивы типа QVector<QVector<int>>
     QVector<int> m_statuses;
 };
 
