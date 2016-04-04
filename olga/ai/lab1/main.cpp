@@ -7,7 +7,6 @@
 #include <vector>
 
 // некоторые константы
-const double eps = 0.0001; // заданная точность
 const double h = 0.000000001; // приращение аргумента
 
 // тип исследуемой функции (возвращает double, принимает два аргумента типа double)
@@ -53,17 +52,13 @@ struct result {
 // програмно считаем производную по x
 double d_x(my_function f, double x, double y)
 {
-    double a1 = f(x - h * 0.5, y);
-    double a2 = f(x + h * 0.5, y);
-    return (a2 - a1) / h;
+    return (f(x + h, y) - f(x, y)) / h;
 }
 
 // програмно считаем производную по y
 double d_y(my_function f, double x, double y)
 {
-    double a1 = f(x, y - h * 0.5);
-    double a2 = f(x, y + h * 0.5);
-    return (a2 - a1) / h;
+    return (f(x, y + h) - f(x, y)) / h;
 }
 
 double length(double x, double y)
@@ -76,30 +71,18 @@ result gradient(my_function f, point p, point to, int iters, double d)
 {
     result r;
 
-    point p0 = p;
-    double fp0 = f(p0.x, p0.y);
     for (int i = 0; i < iters; ++i) {
         double dx = d_x(f, p.x, p.y);
         double dy = d_y(f, p.x, p.y);
-        double n = length(dx, dy);
-
-        p.x -= d * (dx / n);
-        p.y -= d * (dy / n);
-
-        // вычисляем расстояние до истинного минимума
-        dx = std::abs(p.x - to.x);
-        dy = std::abs(p.y - to.y);
         double l = length(dx, dy);
-        r.steps.push_back(l);
 
-        // вычисляем дельту между предыдущим и этим шагом и выходим если она становится меньше eps
-        double fp = f(p.x, p.y);
-        l = std::abs(fp - fp0);
-        if (l < eps) {
-            //break; на самом деле выключаем ради графиков
-        }
-        p0 = p;
-        fp0 = fp;
+        // координаты следующей точки
+        p.x -= d * (dx / l);
+        p.y -= d * (dy / l);
+
+        // расстояние до минимума
+        double dt = length(p.x - to.x, p.y - to.y);
+        r.steps.push_back(dt);
     }
     std::cout << "f("  << p.x << ", " << p.y << ") = " << f(p.x, p.y) << std::endl;
     r.p = p;
@@ -107,6 +90,28 @@ result gradient(my_function f, point p, point to, int iters, double d)
 }
 
 /// метод имитации отжига
+
+// распределение Бокса-Мюллера
+double generateGaussianNoise(double mu, double sigma)
+{
+    const double epsilon = std::numeric_limits<double>::min();
+    const double two_pi = 2.0 * M_PI;
+    double u1, u2;
+
+    static double z0, z1;
+    static bool generate;
+    generate = !generate;
+    if (!generate) {
+        return z1 * sigma + mu;
+    }
+    do {
+        u1 = std::rand() / double(RAND_MAX);
+        u2 = std::rand() / double(RAND_MAX);
+    } while (u1 <= epsilon);
+    z0 = std::sqrt(-2.0 * log(u1)) * cos(two_pi * u2);
+    z1 = std::sqrt(-2.0 * log(u1)) * sin(two_pi * u2);
+    return z0 * sigma + mu;
+}
 
 /// вероятность перехода
 double h_prob(double dE, double T)
@@ -139,14 +144,10 @@ result annealing(my_function f, point p, point to, int iters, double T_0)
 
     double T = T_0;
     for (int i = 0; i < iters; ++i) {
-        // нормальное распределение, с помощью него высчитываем новое значение точки
-        std::normal_distribution<double> distx(p.x, std::sqrt(T));
-        std::normal_distribution<double> disty(p.y, std::sqrt(T));
 
         point n_p(0, 0);
-        n_p.x = distx(gen);
-        n_p.y = disty(gen);
-
+        n_p.x = generateGaussianNoise(p.x, std::sqrt(T));
+        n_p.y = generateGaussianNoise(p.y, std::sqrt(T));
         double de = delta_energy(f, n_p, p);
 
         // новое значение энергии лучше
@@ -168,7 +169,7 @@ result annealing(my_function f, point p, point to, int iters, double T_0)
 
         r.steps.push_back(l);
     }
-    std::cout << "f("  << p.x << ", " << p.y << ") = " << f(p.x, p.y) << std::endl;
+    std::cout << "f("  << p.x << ", " << p.y << ") = " << r.steps.back() << std::endl;
     r.p = p;
     return r;
 }
@@ -179,7 +180,7 @@ int main(int, char **)
 
     point po(24, 32);
 
-    int its = 800; //количество итераций (намерено ограничиваем так, чтобы график получился наглядным)
+    int its = 600; //количество итераций (намерено ограничиваем так, чтобы график получился наглядным)
     std::cout << "g1" << std::endl;
 
     { // вложеный блок, чтобы не ошибиться случайно
@@ -248,6 +249,7 @@ int main(int, char **)
     }
 
     std::cout << "a3" << std::endl;
+    its = 600;
     { // вложеный блок, чтобы не ошибиться случайно
         result r1 = annealing(func4, point(1, 1), point(0, 0), its, 0.5);
         result r2 = annealing(func4, point(1, 1), point(0, 0), its, 5);
