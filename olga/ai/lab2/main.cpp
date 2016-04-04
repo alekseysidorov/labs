@@ -61,13 +61,6 @@ void sort_population(my_function f, std::vector<point> &population)
     std::sort(population.begin(), population.end(), populator);
 }
 
-// скрещивание двух особей
-point make_love(point mother, point father)
-{
-    point child((mother.x + father.x) / 2, (mother.y + father.y) / 2);
-    return child;
-}
-
 // сам генетический алгоритм
 // int ps = 50; // размер популяции
 // int mf = 2; // частота мутаций
@@ -95,12 +88,18 @@ point genetic_algor(std::vector<double> &distances, my_function f, point minP,
     double lastBest = f(population[0]);
     do {
 
-        // размножаем популяцию при помощи случайных связей
-        int sz = population.size();
-        for (int i = 0; i < ps; ++i) {
-            int a = std::rand() % sz;
-            int b = std::rand() % sz;
-            point child = make_love(population[a], population[b]);
+        int sz = population.size() / 2;
+        for (int i = 0; i < sz; ++i) {
+            // размножаем популяцию при скрещивания на основе близкого родства
+            double random = (std::rand() % 100) / 100;
+            // выбираем родителей
+            point p1 = population[i * 2];
+            point p2 = population[i * 2 + 1];
+            // берем от них признаки в случайных пропорциях
+            point child;
+            child.x = p1.x * random + p2.x * (1 - random);
+            child.y = p1.y * random + p2.y * (1 - random);
+
             // добавляем некоторым детям мутаций
             if (i % mf == 0) {
                 child.x += mutagen(gen);
