@@ -1,380 +1,208 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <ctime>
-
-#include <cstdlib>
-#include <cstdio>
+#include <functional>
 #include <cmath>
+#include <limits>
+#include <random>
+#include <vector>
 
-using namespace std;
-
-int fr = 0, ix = 1, iy = 1, dc = 1;
-//int fry = 0;
+// некоторые константы
+const double h = 0.000000001; // приращение аргумента
 
 double f(double x, double y)
 {
-	return (5 * atan(pow((x + 3), 2)) + pow(x, 2) + atan(pow((2 * y - 1), 2)));
+    return x * x + 20 * (y *y + std::sin(x));
 }
 
-double f_dx(double x, double y)
+/// метод градиентного спуска
+
+// програмно считаем производную по x
+double d_x(double x, double y)
 {
-	return (2 * x + 10 * (x + 3) / (pow((x + 3), 4) + 1));
+    return (f(x + h, y) - f(x, y)) / h;
 }
 
-double f_dy(double x, double y)
+// програмно считаем производную по y
+double d_y(double x, double y)
 {
-	return (4 * (2 * y - 1) / (pow((2 * y - 1), 4) + 1));
+    return (f(x, y + h) - f(x, y)) / h;
 }
 
-double norma(double x, double y) // двумерная норма
+// просто длина вектора
+double length(double x, double y)
 {
-	return sqrt(pow(x, 2) + pow(y, 2));
+    return std::sqrt(x * x + y * y);
 }
 
-void gradient(double bx0, double by0, double eps, ofstream *fout, ofstream *fout1)
+// покоординатный спуск по оси x
+int down_x(double &x, double &y, double e)
 {
-	vector<double> x(0);
-	vector<double> y(0);
-	x.push_back(bx0);
-	y.push_back(by0);
-	int i = 0;
-	int k = 3;
-	bool del = true, a, b, c;
-	//double bx = bx0, by = by0;
-	double alpha1 = 0.02, alpha2 = 0.03; // d - скорость спуска
-	double x1, y1;
-	double dx, dy, n;
-	double ax1 = 0, ay1 = 0, ax2 = 0, ay2 = 0, a3 = 0, a4 = 0;
-	//ofstream fout("GradientAlpha1.csv");
-	do
-	{
-		dx = f_dx(x.at(i), y.at(i));
-		dy = f_dy(x.at(i), y.at(i));
-		n = norma(x.at(i), y.at(i));
-		x1 = x.at(i) - alpha1 * (dx / abs(n));
-		y1 = y.at(i) - alpha1 * (dy / abs(n));
-		x.push_back(x1);
-		y.push_back(y1);
-		*fout << i << ';' << x.at(i) << ';' << y.at(i) << ';' << endl;
-		i++;
-		if (i < k)
-		{
-			continue;
-		}
-		else
-		{
-			ax1 = abs(x.at(i) - x.at(i - 1));
-			ay1 = abs(y.at(i) - y.at(i - 1));
-			ax2 = abs(x.at(i) - x.at(i - k)) / (k * alpha1);
-			ay2 = abs(y.at(i) - y.at(i - k)) / (k * alpha1);
-		}
-		if (ax1 < eps && ay1 < eps)
-		{
-			a = false;
-		}
-		else
-		{
-			a = true;
-		}
-		if (ax2 < alpha1 && ay2 < alpha1)
-		{
-			b = false;
-		}
-		else
-		{
-			b = true;
-		}
-		if ((i < k) || b || a)
-		{
-			del = true;
-		}
-		else
-		{
-			del = false;
-		}
-	} while (del);
-	//fout.close();
-	x.clear();
-	y.clear();
-	x.push_back(bx0);
-	y.push_back(by0);
-	i = 0;
-	del = true;
-	//ofstream fout1("GradientAlpha2.csv");
-	do
-	{
-		dx = f_dx(x.at(i), y.at(i));
-		dy = f_dy(x.at(i), y.at(i));
-		n = norma(x.at(i), y.at(i));
-		x1 = x.at(i) - alpha2 * (dx / abs(n));
-		y1 = y.at(i) - alpha2 * (dy / abs(n));
-		x.push_back(x1);
-		y.push_back(y1);
-		*fout1 << i << ';' << x.at(i) << ';' << y.at(i) << ';' << endl;
-		i++;
-		if (i < k)
-		{
-			continue;
-		}
-		else
-		{
-			ax1 = abs(x.at(i) - x.at(i - 1));
-			ay1 = abs(y.at(i) - y.at(i - 1));
-			ax2 = abs(x.at(i) - x.at(i - k)) / (k * alpha2);
-			ay2 = abs(y.at(i) - y.at(i - k)) / (k * alpha2);
-		}
-		if (ax1 < eps && ay1 < eps)
-		{
-			a = false;
-		}
-		else
-		{
-			a = true;
-		}
-		if (ax2 < alpha2 && ay2 < alpha2)
-		{
-			b = false;
-		}
-		else
-		{
-			b = true;
-		}
-		if ((i < k) || b || a)
-		{
-			del = true;
-		}
-		else
-		{
-			del = false;
-		}
-	} while (del);
-	//fout1.close();
+    double d = 0.1;
+
+    int i = 0;
+    double df = std::abs(f(x + d, y) - f(x, y));
+    while (df > e) {
+        if (f(x, y) > f(x + d, y))
+            x -= d;
+        else
+            x += d;
+
+        df = std::abs(f(x, y) - f(x - d, y));
+        ++i;
+    }
+    return i;
 }
 
-void grad_adapt(double bx0, double by0, double eps, ofstream *fout)
+// покоординатный спуск по оси y
+int down_y(double &x, double &y, double e)
 {
-	vector<double> x(0);
-	vector<double> y(0);
-	x.push_back(bx0);
-	y.push_back(by0);
-	int i = 0;
-	int k = 3;
-	bool del = true, a, b, c;
-	//double bx = bx0, by = by0;
-	double alpha = 0.02; // d - скорость спуска
-	double x1[3], y1[3], x2, y2;
-	double al[3] = { alpha }; // = { alpha, alpha / w, alpha * w };
-	double dx, dy, n;
-	double w, f_;
-	double ax1 = 0, ay1 = 0, ax2 = 0, ay2 = 0, a3 = 0, a4 = 0;
-	do
-	{
-		f_ = INT_MAX;
-		w = (1 + pow(10, -7)) + rand() % 2;
-		al[1] = alpha / w;
-		al[2] = alpha * w;
-		dx = f_dx(x.at(i), y.at(i));
-		dy = f_dy(x.at(i), y.at(i));
-		n = norma(x.at(i), y.at(i));
-		for (int j = 0; j < 3; j++)
-		{
-			x1[j] = x.at(i) - al[j] * (dx / abs(n));
-			y1[j] = y.at(i) - al[j] * (dy / abs(n));
-		}
-		for (int k = 0; k < 3; k++)
-		{
-			if (f(x1[k], y1[k]) < f_)
-			{
-				f_ = f(x1[k], y1[k]);
-				x2 = x1[k];
-				y2 = y1[k];
-			}
-		}
-		x.push_back(x2);
-		y.push_back(y2);
-		*fout << i << ';' << x.at(i) << ';' << y.at(i) << ';' << endl;
-		if (i >= k)
-		{
-			ax1 = abs(x.at(i) - x.at(i - 1));
-			ay1 = abs(y.at(i) - y.at(i - 1));
-			ax2 = abs(x.at(i) - x.at(i - k)) / (k * alpha);
-			ay2 = abs(y.at(i) - y.at(i - k)) / (k * alpha);
-		}
-		/*else
-		{
-			ax1 = abs(x.at(i) - x.at(i - 1));
-			ay1 = abs(y.at(i) - y.at(i - 1));
-			ax2 = abs(x.at(i) - x.at(i - k)) / (k * alpha);
-			ay2 = abs(y.at(i) - y.at(i - k)) / (k * alpha);
-		}*/
-		if (ax1 < eps && ay1 < eps)
-		{
-			a = false;
-		}
-		else
-		{
-			a = true;
-		}
-		if (ax2 < alpha && ay2 < alpha)
-		{
-			b = false;
-		}
-		else
-		{
-			b = true;
-		}
-		if ((i < k) || b || a)
-		{
-			del = true;
-		}
-		else
-		{
-			del = false;
-		}
-		i++;
-	} while (del);
+    double d = 0.1;
+
+    int i = 0;
+    double df = std::abs(f(x, y + d) - f(x, y));
+    while (df > e) {
+        if (f(x, y) > f(x, y + d))
+            y += d;
+        else
+            y -= d;
+
+        df = std::abs(f(x, y) - f(x, y - d));
+        ++i;
+    }
+    return i;
 }
 
-double coordx(double x, double y, double e)
+// покоординатный спуск по обеим осям
+
+void down(std::string name, double x, double y, double e)
 {
-	while (f(x, y) - f(x - 1, y) > e)
-	{
-		if (f(x, y) < f(x + dc, y))
-		{
-			x += dc;
-		}
-		else if (f(x - dc, y) < f(x, y))
-		{
-			x -= dc;
-		}
-		ix++;
-	}
-	return x;
+    std::cout << "  down x0=" << x << " y=" << y << " e=" << e << std::endl;
+
+    double x0 = x; // запоминаем исходный x
+
+    std::ofstream out(name + "_down.csv");
+    int ix = down_x(x, y, e);
+    int iy = down_y(x0, y, e);
+    out << ix << ";" << iy << ";" << x << ";" << y << ";" << f(x, y) << ";" << std::endl;
+    out.close();
+
+    std::cout << "    finished x=" << x << ", y=" << y << " f(x,y)=" << f(x, y) << std::endl;
 }
 
-double coordy(double x, double y, double e)
+// простой градиентный спуск с шагом d
+void simple_gradient(std::string name, double x, double y, double e, double d)
 {
-	while (f(x, y) - f(x, y - 1) > e)
-	{
-		if (f(x, y) < f(x, y + dc))
-		{
-			y += dc;
-		}
-		else if (f(x, y - dc) < f(x, y))
-		{
-			y -= dc;
-		}
-		iy++;
-	}
-	return y;
+    std::cout << "  simple gradient x0=" << x << " y=" << y << " e=" << e << std::endl;
+
+    std::ofstream out(name + "_simple_gradient.csv");
+
+    while (1) {
+        double dx = d_x(x, y);
+        double dy = d_y(x, y);
+        double l = length(dx, dy);
+
+        // проверяем, что изменение градиента больше погрешности
+        if (l < e)
+            break;
+
+        // изменения для перехода в следующую точку
+        dx = d * (dx / l);
+        dy = d * (dy / l);
+
+        // переходим в следующую точку
+        x -= dx;
+        y -= dy;
+        out << x << ";" << y << std::endl;
+    }
+    std::cout << "    finished x=" << x << ", y=" << y << " f(x,y)=" << f(x, y) << std::endl;
 }
 
-void grad_coord(double bx0, double by0, double eps)
+// градиентный спуск с дроблением шага
+void drob_gradient(std::string name, double x, double y, double e, double d)
 {
-	double x0 = bx0, y0 = by0, x, y;
-	ofstream fout("GradientCoord.csv");
-	x = coordx(x0, y0, eps);
-	y = coordy(x, y0, eps);
-	fout << ix << ";" << iy << ";" << x << ";" << y << ";" << f(x, y) << ";" << endl;
-	fout.close();
-}
-/*
-double min_func(double x0, double y0, double step)
-{
-	int count = 0;
-	double x = x0, y = y0;
-	while (true)
-	{
-		if (f(x, y) < f(x + step, y + step))
-		{
-			break;
-		}
-		x += step;
-		y += step;
-		count++;
-	}
-	return point;
+    std::cout << "  drob gradient x0=" << x << " y=" << y << " e=" << e << std::endl;
+
+    std::ofstream out(name + "_simple_gradient.csv");
+
+    while (1) {
+        double dx = d_x(x, y);
+        double dy = d_y(x, y);
+        double l = length(dx, dy);
+
+        // проверяем, что изменение градиента больше погрешности
+        if (l < e)
+            break;
+
+        // изменения для перехода в следующую точку
+        dx = d * (dx / l);
+        dy = d * (dy / l);
+
+        // проверяем, нужно ли изменить значение шага
+        if (f(x - dx, y - dy) > f(x, y)) {
+            d /= 2.0;
+        }
+        // переходим в следующую точку
+        x -= dx;
+        y -= dy;
+        out << x << ";" << y << std::endl;
+    }
+    std::cout << "    finished x=" << x << ", y=" << y << " f(x,y)=" << f(x, y) << std::endl;
 }
 
-void search_min_of_func(double x0, double y0, double step)
+// градиентный спуск с заранее заданным шагом
+void step_gradient(std::string name, double x, double y, double e)
 {
-	double x = x0, y = y0;
-	int count = 0;
-	if (f(x + step, y + step) < f(x - step, y - step))
-	{
-		while (true)
-		{
-			if (f(x, y) < f(x + step, y + step))
-			{
-				break;
-			}
-			x += step;
-			y += step;
-			count++;
-		}
-		//return min_func(point, step);
-	}
-	else if (f(x + step, y + step) == f(x - step, y - step))
-	{
-		if (f(x + step, y + step) > f(x, y))
-		{
-			return f(x, y);
-		}
-		else
-		{
-			count = 0;
-			while (true)
-			{
-				if (f(x, y) < f(x + step, y + step))
-				{
-					break;
-				}
-				x += step;
-				y += step;
-				count++;
-			}
-			//return min_func(point, step);
-		}
-	}
-	else
-	{
-		count = 0;
-		while (true)
-		{
-			if (f(x, y) < f(x - step, y - step))
-			{
-				break;
-			}
-			x -= step;
-			y -= step;
-			count++;
-		}
-		//return min_func(point, step * (-1));
-	}
+    std::cout << "  step gradient x0=" << x << " y=" << y << " e=" << e << std::endl;
+
+    std::ofstream out(name + "_simple_gradient.csv");
+
+    int k = 1;
+    while (1) {
+        double d = 1.0 / k; ++k; //изменяем размер шага
+
+        double dx = d_x(x, y);
+        double dy = d_y(x, y);
+        double l = length(dx, dy);
+
+        // проверяем, что изменение градиента больше погрешности
+        if (l < e)
+            break;
+
+        // изменения для перехода в следующую точку
+        dx = d * (dx / l);
+        dy = d * (dy / l);
+
+        // переходим в следующую точку
+        x -= dx;
+        y -= dy;
+        out << x << ";" << y << std::endl;
+    }
+    std::cout << "    finished x=" << x << ", y=" << y << " f(x,y)=" << f(x, y) << std::endl;
 }
-*/
-int main()
+
+void make_lab(std::string name, double x, double y, double e)
 {
-	srand(time(NULL));
-	double x = -3, y = 2; // начальная точка. Изменены знаки, т.к. точка (3; -2) находится правее точки минимума графика! (см. рис.)
-	double eps1 = 0.5, eps2 = 0.1, eps3 = 0.01;
-	ofstream fout("GradientAlpha1.csv");
-	ofstream fout1("GradientAlpha2.csv");
-	//int t0 = clock()
-	gradient(x, y, eps3, &fout, &fout1);
-	//int t1 = clock();
-	fout.close();
-	fout1.close();
-	ofstream fout2("GradientAdapt.csv");
-	grad_adapt(x, y, eps3, &fout2);
-	fout2.close();
-	grad_coord(x, y, eps3);
-	//ofstream fout2("GradientF2.csv");
-	//gradient(x, y, eps3);
-	//fout2.close();
-	//cout << "Time for gradient: " << (double)(t1 - t0) / CLOCKS_PER_SEC << endl;
-	cout << "Excellent!" << endl;
-	system("pause");
-	return 0;
+    std::cout << "-> make_lab: " << name << std::endl;
+
+    down(name, x, y, e);
+    simple_gradient(name, x, y, e, 0.2);
+    drob_gradient(name, x, y, e, 0.2);
+    step_gradient(name, x, y, e);
+}
+
+int main(int, char **)
+{
+    std::cout << std::fixed;
+
+    double x0 = 0.9; double y0 = 0.7;
+
+    make_lab("epsilon-0.9", x0, y0, 0.9);
+    make_lab("epsilon-0.07", x0, y0, 0.07);
+    make_lab("epsilon-0.6", x0, y0, 0.6);
+
+//    simple_gradient(-3, 2, 0.5, 0.2);
+//    simple_gradient(-3, 2, 0.02, 0.01);
+//    //drob_gradient()
+
+//    step_gradient(-3, 2, 0.2);
 }
