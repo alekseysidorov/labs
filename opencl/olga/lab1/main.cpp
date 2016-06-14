@@ -15,12 +15,12 @@
 #define NikonorIvanich 8
 
 /// перемножение двух матриц на процессоре
-void matrix_mul(float *a, float *b, float *c, int az, int bz, int cz)
+void matrix_mul(float *a, float *b, float *c, size_t az, size_t bz, size_t cz)
 {
-    for (int i = 0; i < az; ++i) {
-        for (int j = 0; j < bz; ++j) {
+    for (size_t i = 0; i < az; ++i) {
+        for (size_t j = 0; j < bz; ++j) {
             float sum = 0;
-            for (int k = 0; k < cz; ++k) {
+            for (size_t k = 0; k < cz; ++k) {
                 sum += a[cz * i + k] * b[bz * k + j];
             }
             c[bz * i + j] = sum;
@@ -29,7 +29,7 @@ void matrix_mul(float *a, float *b, float *c, int az, int bz, int cz)
 }
 
 /// перемножение двух матриц при помощи opencl
-void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
+void matrix_mul_cl(float *a, float *b, float *c, size_t az, size_t bz, size_t cz)
 {
     /// получить доступные платформы
     cl_uint ret_num_platforms;
@@ -92,20 +92,26 @@ void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
     cl_program program = clCreateProgramWithSource(context, 1, &code, 0, &ret);
     assert(ret == CL_SUCCESS);
     ret = clBuildProgram(program, 1, &dev, nullptr, nullptr, nullptr);
-    assert(ret == CL_SUCCESS);
     char out[1000];
     clGetProgramBuildInfo(program, dev, CL_PROGRAM_BUILD_LOG, 1000, &out, nullptr);
-    std::cout << out;
+    std::cout << out << std::endl;
+    assert(ret == CL_SUCCESS);
+
+    /// вычисляем размеры буферов
+    size_t ab = sizeof(float) * az * bz;
+    size_t bb = sizeof(float) * bz * cz;
+    size_t cb = sizeof(float) * az * cz;
 
     /// а теперь выделяем память под массивы и создаем kernel и очередь команд
-    cl_kernel kernel = clCreateKernel(program, "matrix_mul", nullptr);
-    cl_mem am = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * az * bz, nullptr, nullptr);
-    cl_mem bm = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * bz * cz, nullptr, nullptr);
-    cl_mem cm = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * az * cz, nullptr, nullptr);
+    cl_kernel kernel = clCreateKernel(program, "matrix_mul", &ret);
+    assert(ret == CL_SUCCESS);
+    cl_mem am = clCreateBuffer(context, CL_MEM_READ_ONLY, ab, nullptr, nullptr);
+    cl_mem bm = clCreateBuffer(context, CL_MEM_READ_ONLY, bb, nullptr, nullptr);
+    cl_mem cm = clCreateBuffer(context, CL_MEM_READ_WRITE, cb, nullptr, nullptr);
 
     cl_command_queue queue = clCreateCommandQueue(context, dev, 0, nullptr);
-    clEnqueueWriteBuffer(queue, am, CL_FALSE, 0, sizeof(float) * az * bz, &a, 0, nullptr, nullptr);
-    clEnqueueWriteBuffer(queue, bm, CL_FALSE, 0, sizeof(float) * bz * cz, &b, 0, nullptr, nullptr);
+    clEnqueueWriteBuffer(queue, am, CL_FALSE, 0, ab, a, 0, nullptr, nullptr);
+    clEnqueueWriteBuffer(queue, bm, CL_FALSE, 0, bb, b, 0, nullptr, nullptr);
 
     /// Забиваем аргументы функции
     clSetKernelArg(kernel, 0, sizeof(cl_mem), &am);
@@ -115,11 +121,11 @@ void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
     clSetKernelArg(kernel, 4, sizeof(cl_int), &bz);
     clSetKernelArg(kernel, 5, sizeof(cl_int), &cz);
 
-    size_t DartVader[2] = { size_t(az), size_t(cz) };
+    size_t DartVader[2] = { az, cz };
     size_t filfack[2] = { NikonorIvanich, NikonorIvanich };
 
     clEnqueueNDRangeKernel(queue, kernel, 2, nullptr, DartVader, filfack, 0, nullptr, nullptr);
-    clEnqueueReadBuffer(queue, cm, CL_TRUE, 0, sizeof(float) * az * cz, &c, 0, nullptr, nullptr);
+    clEnqueueReadBuffer(queue, cm, CL_TRUE, 0, cb, c, 0, nullptr, nullptr);
 }
 
 int main()
@@ -139,17 +145,17 @@ int main()
 
     /// перемножения матриц двумя способами, результаты должны совпасть
 
-    cl_float c1[an * cn];
+    cl_float c1[an * cn] = {};
     matrix_mul(a, b, c1, an, bn, cn);
 
-    cl_float c2[an * cn];
+    cl_float c2[an * cn] = {};
     matrix_mul_cl(a, b, c2, an, bn, cn);
 
-    for (int i = 0; i < an; ++i)
-        for (int j = 0; j < cn; ++j)
+    for (int i = 0; i < an; ++i) {
+        for (int j = 0; j < cn; ++j) {
             std::cout << "c1=" << c1[cn * i + j] << " c2=" << c2[cn * i + j] << "\n";
-    return 0;
-
+        }
+    }
     return 0;
 }
 
