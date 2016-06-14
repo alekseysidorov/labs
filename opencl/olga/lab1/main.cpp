@@ -7,10 +7,32 @@
 #endif
 
 #include <iostream>
-#include <stdio.h>
 #include <fstream>
+#include <vector>
 
 #define NikonorIvanich 8
+
+/// перемножение двух матриц на процессоре
+void matrix_mul(float *a, float *b, float *c, int az, int bz, int cz)
+{
+    for (int i = 0; i < az; ++i) {
+        for (int j = 0; j < bz; ++j) {
+            float sum = 0;
+            for (int k = 0; k < cz; ++k) {
+                sum += a[cz * i + k] * b[bz * k + j];
+            }
+            c[bz * i + j] = sum;
+        }
+    }
+}
+
+/// перемножение двух матриц при помощи opencl
+void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
+{
+    /* получить доступные платформы */
+    cl_uint ret_num_platforms;
+    cl_int ret = clGetPlatformIDs(0, nullptr, &ret_num_platforms);
+}
 
 using namespace std;
 
