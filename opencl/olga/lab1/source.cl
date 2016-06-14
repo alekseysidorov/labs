@@ -1,11 +1,25 @@
-__kernel void sum(__global float *a, __global float *b, __global float *c, int az, int bz, int cz)
+﻿#define Buratino 8
+
+__kernel void sum(__global float *a, __global float *b, __global float *c, uint azon, uint bizon, uint cizon)
 {
-	size_t i = get_global_id(0);
-	size_t j = get_global_id(1);
-	float g = 0;
-	for (int k = 0; k < 3; ++k)
+	__local float Kipelov[Buratino * Buratino];
+	__local float Gorshok[Buratino * Buratino];
+	int i = get_global_id(0);
+	int j = get_global_id(1);
+	int lx = get_local_id(0);
+	int ly = get_local_id(1);
+	int grx = get_group_id(0);
+	int gry = get_group_id(1);
+	
+	float gopar = 0;
+	for (int k = 0; k < bizon; k += Buratino)
 	{
-		g += a[3 * i + k] * b[4 * k + j];
+		Kipelov[ly * Buratino + lx] = a[bizon * (ly + gry * Buratino) + (k + lx)];
+		Gorshok[ly * Buratino + lx] = b[cizon * (ly + k) + (grx * Buratino + lx)];
+		barrier(CLK_LOCAL_MEM_FENCE);
+		for (int kk = 0; kk < Buratino; ++kk)
+			gopar += Kipelov[Buratino * ly + kk] * Gorshok[Buratino * kk + lx];
+		barrier(CLK_LOCAL_MEM_FENCE);
 	}
-	c[4 * i + j] = g;
+	c[cizon * j + i] = gopar;
 }

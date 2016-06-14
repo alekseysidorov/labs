@@ -2,6 +2,7 @@ import qbs
 import qbs.Probes
 
 CppApplication {
+    type: "application"
     files: ["main.cpp"]
 
     Probes.IncludeProbe {
@@ -33,12 +34,9 @@ CppApplication {
     }
 
     cpp.cxxLanguageVersion: "c++14"
-    cpp.includePaths: [
-        clIncludeProbe.path
-    ]
-    cpp.dynamicLibraries: [
-        clLibProbe.filePath
-    ]
+    cpp.includePaths: clIncludeProbe.path
+    cpp.dynamicLibraries: clLibProbe.filePath
+    cpp.frameworks: "OpenCL"
 
     Group {
         name: "OpenCL"
