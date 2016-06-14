@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <sstream>
 
 #define NikonorIvanich 8
 
@@ -37,7 +38,52 @@ void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
     std::vector<cl_platform_id> platforms(ret_num_platforms);
     ret = clGetPlatformIDs(ret_num_platforms, platforms.data(), NULL);
 
-    /// ищем среди устройств видеокарту
+    cl_device_id dev = NULL;
+    cl_platform_id plat = NULL;
+    /// перебираем устройства, привязаные к платформе в поисках видеокарты
+    for (size_t i = 0; i < platforms.size(); ++i) {
+        /// по аналогии с платформами перебираем устройства
+        cl_uint ret_num_devices;
+        ret = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, NULL, &ret_num_devices);
+        std::vector<cl_device_id> devices(ret_num_devices);
+        ret = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, ret_num_devices, devices.data(), NULL);
+
+        /// берем первую попавшуюся видеокарту
+        if (!devices.empty()) {
+            plat = platforms[i];
+            dev = devices[0];
+            break;
+        }
+    }
+
+    if (!dev) {
+        /// если нет видеокарты, то пробуем найти нечто другое
+        for (size_t i = 0; i < platforms.size(); ++i) {
+            /// по аналогии с платформами перебираем устройства
+            cl_uint ret_num_devices;
+            ret = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &ret_num_devices);
+            std::vector<cl_device_id> devices(ret_num_devices);
+            ret = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, ret_num_devices, devices.data(), NULL);
+
+            /// берем первую попавшуюся видеокарту
+            if (!devices.empty()) {
+                plat = platforms[i];
+                dev = devices[0];
+                break;
+            }
+        }
+    }
+
+    /// читаем код cl программы
+    std::ifstream file("source.cl");
+    std::stringstream ss;
+    ss << file.rdbuf(); //read the file
+    std::string code = ss.str();//str holds the content of the file
+
+    /// создаем контекст и компилируем нашу программу
+    cl_int eretik;
+    cl_context_properties props[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)plat, 0};
+    cl_context context = clCreateContextFromType(props, CL_DEVICE_TYPE_GPU, nullptr, nullptr, nullptr);
 
 }
 
@@ -45,8 +91,8 @@ int main()
 {
     /// заполнение матрицы
     const int an = 2, bn = 4, cn = 8;
-    static cl_float a[an * bn];
-    static cl_float b[bn * cn];
+    cl_float a[an * bn];
+    cl_float b[bn * cn];
 
     for (int i = 0; i < an; ++i)
         for (int j = 0; j < bn; ++j)
@@ -58,10 +104,10 @@ int main()
 
     /// перемножения матриц двумя способами, результаты должны совпасть
 
-    static cl_float c1[an * cn];
+    cl_float c1[an * cn];
     matrix_mul(a, b, c1, an, bn, cn);
 
-    static cl_float c2[an * cn];
+    cl_float c2[an * cn];
     matrix_mul_cl(a, b, c2, an, bn, cn);
 
     return 0;
