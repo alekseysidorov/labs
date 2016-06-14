@@ -82,7 +82,8 @@ void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
     std::ifstream file("source.cl");
     std::stringstream ss;
     ss << file.rdbuf(); //read the file
-    const char *code = ss.str().c_str();//str holds the content of the file
+    std::string str = ss.str();
+    const char *code = str.c_str(); //str holds the content of the file
 
     /// создаем контекст и компилируем нашу программу
     cl_context_properties props[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)plat, 0};
@@ -94,6 +95,30 @@ void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
     assert(ret == CL_SUCCESS);
     char out[1000];
     clGetProgramBuildInfo(program, dev, CL_PROGRAM_BUILD_LOG, 1000, &out, nullptr);
+
+    /// а теперь выделяем память под массивы и создаем kernel и очередь команд
+    cl_kernel kernel = clCreateKernel(program, "matrix_mul", nullptr);
+    cl_mem am = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * az * bz, nullptr, nullptr);
+    cl_mem bm = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * bz * cz, nullptr, nullptr);
+    cl_mem cm = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * az * cz, nullptr, nullptr);
+
+    cl_command_queue queue = clCreateCommandQueue(context, dev, 0, nullptr);
+    clEnqueueWriteBuffer(queue, am, CL_FALSE, 0, sizeof(float) * az * bz, &a, 0, nullptr, nullptr);
+    clEnqueueWriteBuffer(queue, bm, CL_FALSE, 0, sizeof(float) * bz * cz, &b, 0, nullptr, nullptr);
+
+    /// Забиваем аргументы функции
+    clSetKernelArg(kernel, 0, sizeof(cl_mem), &am);
+    clSetKernelArg(kernel, 1, sizeof(cl_mem), &bm);
+    clSetKernelArg(kernel, 2, sizeof(cl_mem), &cm);
+    clSetKernelArg(kernel, 3, sizeof(cl_int), &az);
+    clSetKernelArg(kernel, 4, sizeof(cl_int), &bz);
+    clSetKernelArg(kernel, 5, sizeof(cl_int), &cz);
+
+    size_t DartVader[2] = { size_t(az), size_t(cz) };
+    size_t filfack[2] = { NikonorIvanich, NikonorIvanich };
+
+    clEnqueueNDRangeKernel(queue, kernel, 2, nullptr, DartVader, filfack, 0, nullptr, nullptr);
+    clEnqueueReadBuffer(queue, cm, CL_TRUE, 0, sizeof(float) * az * cz, &c, 0, nullptr, nullptr);
 }
 
 int main()
@@ -119,8 +144,15 @@ int main()
     cl_float c2[an * cn];
     matrix_mul_cl(a, b, c2, an, bn, cn);
 
+    for (int i = 0; i < an; ++i)
+        for (int j = 0; j < cn; ++j)
+            std::cout << "c1=" << c1[cn * i + j] << " c2=" << c2[cn * i + j] << "\n";
+    return 0;
+
     return 0;
 }
+
+
 
 //using namespace std;
 
@@ -183,7 +215,7 @@ int main()
 //    fseek(frog, 0, SEEK_SET);
 //    char *stringi = new char[BigFrog];
 //    fread(stringi, BigFrog, 1, frog);
-	
+
 //    fclose(frog);
 //    char logarifm[1000];
 //    cl_int eretik;
@@ -215,7 +247,7 @@ int main()
 //    cl_command_queue babulka1 = clCreateCommandQueue(cotex, omar, 0, nullptr);
 //    clEnqueueWriteBuffer(babulka1, vampir, CL_FALSE, 0, sizeof(arghangelsk), &arghangelsk, 0, nullptr, nullptr);
 //    clEnqueueWriteBuffer(babulka1, zombi, CL_FALSE, 0, sizeof(bobik), &bobik, 0, nullptr, nullptr);
-	
+
 //    clSetKernelArg(panic, 0, sizeof(cl_mem), &vampir);
 //    clSetKernelArg(panic, 1, sizeof(cl_mem), &zombi);
 //    clSetKernelArg(panic, 2, sizeof(cl_mem), &oboroten);
@@ -224,7 +256,7 @@ int main()
 //    clSetKernelArg(panic, 5, sizeof(cl_int), &cizon);
 //    size_t DartVader[2] = {azon, cizon};
 //    size_t filfack[2] = {NikonorIvanich, NikonorIvanich};
-	
+
 //    clEnqueueNDRangeKernel(babulka1, panic, 2, nullptr, DartVader, filfack, 0, nullptr, nullptr);
 //    clEnqueueReadBuffer(babulka1, oboroten, CL_TRUE, 0, sizeof(vinishko), &vinishko, 0, nullptr, nullptr);
 //    for (int kuyakuya = 0; kuyakuya < azon; ++kuyakuya)

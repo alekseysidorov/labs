@@ -1,6 +1,6 @@
 ﻿#define Buratino 8
 
-__kernel void sum(__global float *a, __global float *b, __global float *c, uint azon, uint bizon, uint cizon)
+__kernel void matrix_mul(__global float *a, __global float *b, __global float *c, uint azon, uint bizon, uint cizon)
 {
 	__local float Kipelov[Buratino * Buratino];
 	__local float Gorshok[Buratino * Buratino];
