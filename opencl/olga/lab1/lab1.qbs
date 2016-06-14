@@ -36,7 +36,11 @@ CppApplication {
     cpp.cxxLanguageVersion: "c++14"
     cpp.includePaths: clIncludeProbe.path
     cpp.dynamicLibraries: clLibProbe.filePath
-    cpp.frameworks: "OpenCL"
+
+    Properties {
+        condition: qbs.targetOS.contains("osx")
+        cpp.frameworks: "OpenCL"
+    }
 
     Group {
         name: "OpenCL"
