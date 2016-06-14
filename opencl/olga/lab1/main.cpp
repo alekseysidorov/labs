@@ -86,7 +86,7 @@ void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
     const char *code = str.c_str(); //str holds the content of the file
 
     /// создаем контекст и компилируем нашу программу
-    cl_context_properties props[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)plat, 0};
+    const cl_context_properties props[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)plat, 0};
     cl_context context = clCreateContextFromType(props, dev_type, nullptr, nullptr, nullptr);
 
     cl_program program = clCreateProgramWithSource(context, 1, &code, 0, &ret);
@@ -95,12 +95,13 @@ void matrix_mul_cl(float *a, float *b, float *c, int az, int bz, int cz)
     assert(ret == CL_SUCCESS);
     char out[1000];
     clGetProgramBuildInfo(program, dev, CL_PROGRAM_BUILD_LOG, 1000, &out, nullptr);
+    std::cout << out;
 
     /// а теперь выделяем память под массивы и создаем kernel и очередь команд
     cl_kernel kernel = clCreateKernel(program, "matrix_mul", nullptr);
-    cl_mem am = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * az * bz, nullptr, nullptr);
-    cl_mem bm = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * bz * cz, nullptr, nullptr);
-    cl_mem cm = clCreateBuffer(context, CL_MEM_WRITE_ONLY, sizeof(float) * az * cz, nullptr, nullptr);
+    cl_mem am = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * az * bz, nullptr, nullptr);
+    cl_mem bm = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(float) * bz * cz, nullptr, nullptr);
+    cl_mem cm = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(float) * az * cz, nullptr, nullptr);
 
     cl_command_queue queue = clCreateCommandQueue(context, dev, 0, nullptr);
     clEnqueueWriteBuffer(queue, am, CL_FALSE, 0, sizeof(float) * az * bz, &a, 0, nullptr, nullptr);
