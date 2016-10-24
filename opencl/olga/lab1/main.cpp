@@ -15,21 +15,21 @@
 #define NikonorIvanich 8
 
 /// перемножение двух матриц на процессоре
-void matrix_mul(cl_float *a, cl_float *b, cl_float *c, size_t az, size_t bz, size_t cz)
+void matrix_mul(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz)
 {
     for (size_t i = 0; i < az; ++i) {
-        for (size_t j = 0; j < bz; ++j) {
+        for (size_t j = 0; j < cz; ++j) {
             float sum = 0;
-            for (size_t k = 0; k < cz; ++k) {
-                sum += a[cz * i + k] * b[bz * k + j];
+            for (size_t k = 0; k < bz; ++k) {
+                sum += a[bz * i + k] * b[cz * k + j];
             }
-            c[bz * i + j] = sum;
+            c[cz * i + j] = sum;
         }
     }
 }
 
 /// перемножение двух матриц при помощи opencl
-void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, size_t az, size_t bz, size_t cz)
+void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz)
 {
     /// получить доступные платформы
     cl_uint ret_num_platforms;
@@ -98,9 +98,9 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, size_t az, size_t bz, 
     std::cout << out << std::endl;
 
     /// вычисляем размеры буферов
-    size_t ab = sizeof(float) * az * bz;
-    size_t bb = sizeof(float) * bz * cz;
-    size_t cb = sizeof(float) * az * cz;
+    int ab = sizeof(cl_float) * az * bz;
+    int bb = sizeof(cl_float) * bz * cz;
+    int cb = sizeof(cl_float) * az * cz;
 
     /// а теперь выделяем память под массивы и создаем kernel и очередь команд
     cl_kernel kernel = clCreateKernel(program, "matrix_mul", &ret);
@@ -126,7 +126,7 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, size_t az, size_t bz, 
     clSetKernelArg(kernel, 4, sizeof(cl_int), &bz);
     clSetKernelArg(kernel, 5, sizeof(cl_int), &cz);
 
-    size_t global_work_size[2] = { NikonorIvanich, NikonorIvanich };
+    size_t global_work_size[2] = { size_t(az), size_t(cz) };
     size_t local_work_size[2] = { NikonorIvanich, NikonorIvanich };
 
     ret = clEnqueueNDRangeKernel(queue, kernel, 2, nullptr, global_work_size, local_work_size, 0, nullptr, nullptr);
@@ -138,17 +138,17 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, size_t az, size_t bz, 
 int main()
 {
     /// заполнение матрицы
-    const int an = 2, bn = 4, cn = 8;
+    const int an = 8, bn = 16, cn = 24;
     cl_float a[an * bn];
     cl_float b[bn * cn];
 
     for (int i = 0; i < an; ++i)
         for (int j = 0; j < bn; ++j)
-            a[bn * i + j] = 2;
+            a[bn * i + j] = i + 1;
 
     for (int i = 0; i < bn; ++i)
         for (int j = 0; j < cn; ++j)
-            b[cn * i + j] = 3;
+            b[cn * i + j] = j + 1;
 
     /// перемножения матриц двумя способами, результаты должны совпасть
 
@@ -158,10 +158,43 @@ int main()
     cl_float c2[an * cn] = {};
     matrix_mul_cl(a, b, c2, an, bn, cn);
 
+
     for (int i = 0; i < an; ++i) {
-        for (int j = 0; j < cn; ++j) {
-            std::cout << "c1=" << c1[cn * i + j] << " c2=" << c2[cn * i + j] << "\n";
-        }
+        for (int j = 0; j < bn; ++j)
+            std::cout << a[bn * i + j] << " ";
+        std::cout << std::endl;
     }
+
+    std::cout << std::endl;
+    std::cout << std::endl;
+
+
+
+    for (int i = 0; i < bn; ++i) {
+        for (int j = 0; j < cn; ++j)
+            std::cout << b[cn * i + j] << " ";
+        std::cout << std::endl;
+    }
+
+    std::cout << std::endl;
+    std::cout << std::endl;
+
+
+    for (int i = 0; i < an; ++i) {
+        for (int j = 0; j < cn; ++j)
+            std::cout << c2[cn * i + j] << " ";
+        std::cout << std::endl;
+    }
+
+    std::cout << std::endl;
+    std::cout << std::endl;
+
+
+    for (int i = 0; i < an; ++i) {
+        for (int j = 0; j < cn; ++j)
+            std::cout << c1[cn * i + j] << " ";
+        std::cout << std::endl;
+    }
+
     return 0;
 }
