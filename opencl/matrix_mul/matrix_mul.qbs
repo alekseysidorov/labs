@@ -5,7 +5,6 @@ CppApplication {
     type: "application"
     files: [
         "main.cpp",
-        "source.cpp"
     ]
 
     Probes.IncludeProbe {

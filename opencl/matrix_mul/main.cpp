@@ -14,7 +14,6 @@
 
 #define NikonorIvanich 8
 
-/// перемножение двух матриц на процессоре
 void matrix_mul(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz)
 {
     for (size_t i = 0; i < az; ++i) {
@@ -28,29 +27,24 @@ void matrix_mul(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz)
     }
 }
 
-/// перемножение двух матриц при помощи opencl
 void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz)
 {
-    /// получить доступные платформы
     cl_uint ret_num_platforms;
     cl_int ret = clGetPlatformIDs(0, NULL, &ret_num_platforms);
 
-    /// получить список устройств
     std::vector<cl_platform_id> platforms(ret_num_platforms);
     ret = clGetPlatformIDs(ret_num_platforms, platforms.data(), NULL);
 
     cl_device_id dev = NULL;
     cl_platform_id plat = NULL;
     cl_device_type dev_type = 0;
-    /// перебираем устройства, привязаные к платформе в поисках видеокарты
     for (size_t i = 0; i < platforms.size(); ++i) {
-        /// по аналогии с платформами перебираем устройства
+
         cl_uint ret_num_devices;
         ret = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, 0, NULL, &ret_num_devices);
         std::vector<cl_device_id> devices(ret_num_devices);
         ret = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_GPU, ret_num_devices, devices.data(), NULL);
 
-        /// берем первую попавшуюся видеокарту
         if (!devices.empty()) {
             plat = platforms[i];
             dev = devices[0];
@@ -60,15 +54,12 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz
     }
 
     if (!dev) {
-        /// если нет видеокарты, то пробуем найти процессор
         for (size_t i = 0; i < platforms.size(); ++i) {
-            /// по аналогии с платформами перебираем устройства
             cl_uint ret_num_devices;
             ret = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_CPU, 0, NULL, &ret_num_devices);
             std::vector<cl_device_id> devices(ret_num_devices);
             ret = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_CPU, ret_num_devices, devices.data(), NULL);
 
-            /// берем первую попавшуюся процессору
             if (!devices.empty()) {
                 plat = platforms[i];
                 dev = devices[0];
@@ -78,14 +69,12 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz
         }
     }
 
-    /// читаем код cl программы
     std::ifstream file("source.cl");
     std::stringstream ss;
-    ss << file.rdbuf(); //read the file
+    ss << file.rdbuf();
     std::string str = ss.str();
-    const char *code = str.c_str(); //str holds the content of the file
+    const char *code = str.c_str();
 
-    /// создаем контекст и компилируем нашу программу
     const cl_context_properties props[] = { CL_CONTEXT_PLATFORM, (cl_context_properties)plat, 0};
     cl_context context = clCreateContextFromType(props, dev_type, nullptr, nullptr, nullptr);
 
@@ -97,12 +86,10 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz
     assert(ret == CL_SUCCESS);
     std::cout << out << std::endl;
 
-    /// вычисляем размеры буферов
     int ab = sizeof(cl_float) * az * bz;
     int bb = sizeof(cl_float) * bz * cz;
     int cb = sizeof(cl_float) * az * cz;
 
-    /// а теперь выделяем память под массивы и создаем kernel и очередь команд
     cl_kernel kernel = clCreateKernel(program, "matrix_mul", &ret);
     assert(ret == CL_SUCCESS);
     cl_mem am = clCreateBuffer(context, CL_MEM_READ_ONLY, ab, nullptr, &ret);
@@ -118,7 +105,6 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz
     ret = clEnqueueWriteBuffer(queue, bm, CL_FALSE, 0, bb, b, 0, nullptr, nullptr);
     assert(ret == CL_SUCCESS);
 
-    /// Забиваем аргументы функции
     clSetKernelArg(kernel, 0, sizeof(cl_mem), &am);
     clSetKernelArg(kernel, 1, sizeof(cl_mem), &bm);
     clSetKernelArg(kernel, 2, sizeof(cl_mem), &cm);
@@ -126,7 +112,9 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz
     clSetKernelArg(kernel, 4, sizeof(cl_int), &bz);
     clSetKernelArg(kernel, 5, sizeof(cl_int), &cz);
 
-    size_t global_work_size[2] = { size_t(az), size_t(cz) };
+    size_t x = az + (az % NikonorIvanich);
+    size_t y = cz + (cz % NikonorIvanich);
+    size_t global_work_size[2] = { y, x };
     size_t local_work_size[2] = { NikonorIvanich, NikonorIvanich };
 
     ret = clEnqueueNDRangeKernel(queue, kernel, 2, nullptr, global_work_size, local_work_size, 0, nullptr, nullptr);
@@ -135,9 +123,8 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz
     assert(ret == CL_SUCCESS);
 }
 
-int test()
+int main()
 {
-    /// заполнение матрицы
     const int an = 8, bn = 16, cn = 24;
     cl_float a[an * bn];
     cl_float b[bn * cn];
@@ -149,8 +136,6 @@ int test()
     for (int i = 0; i < bn; ++i)
         for (int j = 0; j < cn; ++j)
             b[cn * i + j] = j + 1;
-
-    /// перемножения матриц двумя способами, результаты должны совпасть
 
     cl_float c1[an * cn] = {};
     matrix_mul(a, b, c1, an, bn, cn);

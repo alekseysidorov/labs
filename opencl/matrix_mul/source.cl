@@ -1,6 +1,6 @@
 ﻿#define N 8
 
-__kernel void matrix_mul(__global float *a, __global float *b, __global float *c, int az, int bz, int cz)
+__kernel void matrix_mul(__global float *b, __global float *a, __global float *c, int cz, int bz, int az)
 {
     __local float ant[N * N];
     __local float bnt[N * N];
