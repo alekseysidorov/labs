@@ -135,7 +135,7 @@ void matrix_mul_cl(cl_float *a, cl_float *b, cl_float *c, int az, int bz, int cz
     assert(ret == CL_SUCCESS);
 }
 
-int main()
+int test()
 {
     /// заполнение матрицы
     const int an = 8, bn = 16, cn = 24;

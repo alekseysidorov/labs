@@ -3,7 +3,10 @@ import qbs.Probes
 
 CppApplication {
     type: "application"
-    files: ["main.cpp"]
+    files: [
+        "main.cpp",
+        "source.cpp"
+    ]
 
     Probes.IncludeProbe {
         id: clIncludeProbe
