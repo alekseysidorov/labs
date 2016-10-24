@@ -3,9 +3,11 @@
 #else
 #include <CL/cl.h>
 #endif
-#include <vector>
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <sstream>
+#include <cassert>
 #include <stdlib.h>
 #include <time.h>
 #pragma comment(lib, "opencl.lib")
@@ -87,19 +89,15 @@ int main() {
 		CL_CONTEXT_PLATFORM, (cl_context_properties)platformIds[currentPlatform], 0
 	};
 	cl_context context = clCreateContextFromType(contextProperties, type, nullptr, nullptr, nullptr);
-	std::ifstream in("kernel.cl", std::ios::binary);
-	char *code = new char[1000];
-	char **codeptr = &code;
-	size_t counter = 0;
-	while (!in.eof()) {
-		in.read(code + counter, 1);
-		counter++;
-	}
-	in.close();
-	code[counter - 1] = 0;
+    /// читаем код cl программы
+    std::ifstream file("kernel.cl");
+    std::stringstream ss;
+    ss << file.rdbuf(); //read the file
+    std::string str = ss.str();
+    const char *code = str.c_str(); //str holds the content of the file
+
 	char log[1000];
-	cl_program program = clCreateProgramWithSource(context, 1, (const char **)codeptr, &counter, nullptr);
-	delete[] code;
+    cl_program program = clCreateProgramWithSource(context, 1, &code, 0, nullptr);
 	cl_int out = clBuildProgram(program, 1, deviceIds.data(), "", nullptr, nullptr);
 	clGetProgramBuildInfo(program, deviceIds[preferredDeviceId], CL_PROGRAM_BUILD_LOG, 1000, &log, nullptr);
 	float *x = new float[ARRAY_SIZE_1];
@@ -134,10 +132,12 @@ int main() {
 	cl_event event;
 	clEnqueueNDRangeKernel(queue1, kernel, 2, nullptr, threads, block, 0, nullptr, &event);
 	clEnqueueReadBuffer(queue1, buff3, CL_TRUE, 0, ARRAY_SIZE_3 * sizeof(float), z, 0, nullptr, nullptr);
-	cl_ulong start, end, time;
-	clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, nullptr);
-	clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, nullptr);
-	time = end - start;
+
+    cl_ulong start, end, time;
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, nullptr);
+    clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, nullptr);
+    time = end - start;
+
 	float ratio;
 	if (time == 0) {
 		ratio = 0;
